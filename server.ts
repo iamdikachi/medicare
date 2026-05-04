@@ -125,7 +125,7 @@ async function startServer() {
     res.cookie('auth_token', token, { 
       httpOnly: true, 
       secure: true, 
-      sameSite: 'lax',
+      sameSite: 'none',
       path: '/'
     });
     const { password: _, ...cleanUser } = newUser;
@@ -140,7 +140,7 @@ async function startServer() {
     res.cookie('auth_token', token, { 
       httpOnly: true, 
       secure: true, 
-      sameSite: 'lax',
+      sameSite: 'none',
       path: '/'
     });
     const { password: _, ...cleanUser } = user;
@@ -155,7 +155,12 @@ async function startServer() {
   });
 
   app.post('/api/auth/logout', (req, res) => {
-    res.clearCookie('auth_token', { path: '/' });
+    res.clearCookie('auth_token', { 
+      path: '/',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none'
+    });
     res.json({ success: true });
   });
 
