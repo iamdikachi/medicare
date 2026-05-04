@@ -1,0 +1,79 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global Helpers
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isVerified() { return isSignedIn() && request.auth.token.email_verified == true; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // User Profile Validation
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'role']) &&
+             data.keys().size() >= 3 &&
+             data.uid == request.auth.uid &&
+             data.email is string &&
+             data.role in ['patient', 'doctor', 'admin'];
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isVerified() && isValidId(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidUser(incoming()) && 
+                    incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'subscriptionTier']);
+    }
+
+    // Doctor Validation
+    function isValidDoctor(data) {
+      return data.keys().hasAll(['uid', 'name', 'specialty']) &&
+             data.uid is string &&
+             data.name is string && data.name.size() <= 100 &&
+             data.specialty is string;
+    }
+
+    match /doctors/{doctorId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+                            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' &&
+                            isValidDoctor(incoming());
+    }
+
+    // Appointment Validation
+    function isValidAppointment(data) {
+      return data.keys().hasAll(['patientId', 'doctorId', 'dateTime', 'status']) &&
+             data.patientId == request.auth.uid &&
+             data.doctorId is string &&
+             data.status in ['pending', 'confirmed', 'completed', 'cancelled'];
+    }
+
+    match /appointments/{appointmentId} {
+      allow get: if isSignedIn() && (isOwner(existing().patientId) || isOwner(existing().doctorId));
+      allow list: if isSignedIn() && (resource.data.patientId == request.auth.uid || resource.data.doctorId == request.auth.uid);
+      allow create: if isVerified() && isValidId(appointmentId) && isValidAppointment(incoming());
+      allow update: if isSignedIn() && (isOwner(existing().patientId) || isOwner(existing().doctorId)) &&
+                    isValidAppointment(incoming()) &&
+                    incoming().diff(existing()).affectedKeys().hasOnly(['status', 'notes']);
+    }
+
+    // Health Records
+    function isValidRecord(data) {
+      return data.keys().hasAll(['patientId', 'title', 'type', 'date']) &&
+             data.patientId == request.auth.uid &&
+             data.type in ['diagnosis', 'prescription', 'test_result', 'history'];
+    }
+
+    match /health_records/{recordId} {
+      allow get: if isSignedIn() && isOwner(existing().patientId);
+      allow list: if isSignedIn() && resource.data.patientId == request.auth.uid;
+      allow create: if isVerified() && isValidId(recordId) && isValidRecord(incoming());
+      allow delete: if isSignedIn() && isOwner(existing().patientId);
+    }
+  }
+}
