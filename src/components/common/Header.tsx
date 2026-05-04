@@ -70,12 +70,20 @@ export default function Header() {
               </button>
             </div>
           ) : (
-            <button
-              onClick={login}
-              className="bg-gray-900 text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-gray-800 transition-all active:scale-95 shadow-lg shadow-gray-200"
-            >
-              Sign In
-            </button>
+            <div className="flex items-center gap-3">
+              <Link
+                to="/login"
+                className="text-sm font-bold text-gray-600 hover:text-blue-600 transition-colors px-4 py-2"
+              >
+                Log In
+              </Link>
+              <Link
+                to="/signup"
+                className="bg-blue-600 text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 active:scale-95"
+              >
+                Sign Up
+              </Link>
+            </div>
           )}
         </div>
       </div>

@@ -4,18 +4,12 @@ import Header from './components/common/Header';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import Doctors from './pages/Doctors';
+import DoctorProfile from './pages/DoctorProfile';
+import Appointments from './pages/Appointments';
 import HealthRecords from './pages/HealthRecords';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
 
-function AppointmentsPage() {
-  return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">My Appointments</h1>
-        <p className="text-gray-600">This feature is coming soon. Please check your Dashboard for upcoming consultations.</p>
-      </div>
-    </div>
-  );
-}
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -35,10 +29,13 @@ function AppRoutes() {
         <main>
           <Routes>
             <Route path="/" element={<LandingPage />} />
-            <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/" />} />
+            <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" />} />
+            <Route path="/signup" element={!user ? <Signup /> : <Navigate to="/dashboard" />} />
+            <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login" />} />
             <Route path="/doctors" element={<Doctors />} />
-            <Route path="/appointments" element={user ? <AppointmentsPage /> : <Navigate to="/" />} />
-            <Route path="/records" element={user ? <HealthRecords /> : <Navigate to="/" />} />
+            <Route path="/doctors/:id" element={<DoctorProfile />} />
+            <Route path="/appointments" element={user ? <Appointments /> : <Navigate to="/login" />} />
+            <Route path="/records" element={user ? <HealthRecords /> : <Navigate to="/login" />} />
           </Routes>
         </main>
       </div>

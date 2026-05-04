@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { Shield, Clock, Heart, Users, CheckCircle, ArrowRight, Activity } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { cn } from '../lib/utils';
+import { Link } from 'react-router-dom';
 
 export default function LandingPage() {
   const { login } = useAuth();
@@ -49,15 +50,15 @@ export default function LandingPage() {
                   access secure health records, and subcribe for continuous professional care.
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-                  <button
-                    onClick={login}
+                  <Link
+                    to="/signup"
                     className="w-full sm:w-auto bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-blue-700 transition-all shadow-xl shadow-blue-200 flex items-center justify-center gap-2 active:scale-95"
                   >
                     Start Consultation <ArrowRight className="h-5 w-5" />
-                  </button>
-                  <button className="w-full sm:w-auto bg-white text-gray-900 border-2 border-gray-100 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-gray-50 transition-all">
+                  </Link>
+                  <Link to="/doctors" className="w-full sm:w-auto bg-white text-center text-gray-900 border-2 border-gray-100 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-gray-50 transition-all">
                     View Doctors
-                  </button>
+                  </Link>
                 </div>
               </motion.div>
             </div>

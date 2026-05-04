@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
-import { collection, query, getDocs, addDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
 import { motion } from 'motion/react';
 import { Search, Stethoscope, Star, Clock, DollarSign, Filter } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { Link } from 'react-router-dom';
 import BookingModal from '../components/appointments/BookingModal';
 
 interface Doctor {
@@ -27,51 +26,10 @@ export default function Doctors() {
   useEffect(() => {
     async function fetchDoctors() {
       try {
-        const q = query(collection(db, 'doctors'));
-        const querySnapshot = await getDocs(q);
-        const docs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Doctor));
-        
-        if (docs.length === 0) {
-          // Add some dummy doctors if collection is empty
-          const dummyDoctors = [
-            {
-              uid: 'doc1',
-              name: 'Dr. Sarah Wilson',
-              specialty: 'Cardiology',
-              bio: 'Specialist in cardiovascular diseases with 10+ years of experience.',
-              rating: 4.9,
-              experienceYears: 12,
-              consultationFee: 50,
-              photoURL: 'https://images.unsplash.com/photo-1559839734-2b71f1e3c77e?auto=format&fit=crop&q=80&w=400'
-            },
-            {
-              uid: 'doc2',
-              name: 'Dr. James Chen',
-              specialty: 'Neurology',
-              bio: 'Expert in neurodegenerative disorders and brain health.',
-              rating: 4.8,
-              experienceYears: 8,
-              consultationFee: 65,
-              photoURL: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=400'
-            },
-            {
-              uid: 'doc3',
-              name: 'Dr. Emily Brooks',
-              specialty: 'Pediatrics',
-              bio: 'Compassionate care for children and adolescents.',
-              rating: 5.0,
-              experienceYears: 15,
-              consultationFee: 40,
-              photoURL: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=400'
-            }
-          ];
-          
-          for (const d of dummyDoctors) {
-            await addDoc(collection(db, 'doctors'), d);
-          }
-          setDoctors(dummyDoctors.map((d, i) => ({ id: `new_${i}`, ...d })));
-        } else {
-          setDoctors(docs);
+        const res = await fetch('/api/doctors');
+        if (res.ok) {
+          const data = await res.json();
+          setDoctors(data);
         }
       } catch (error) {
         console.error("Error fetching doctors:", error);
@@ -146,7 +104,9 @@ export default function Doctors() {
                 </div>
 
                 <div className="p-8 flex-1 flex flex-col">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2 truncate">{doctor.name}</h3>
+                  <Link to={`/doctors/${doctor.id}`} className="hover:text-blue-600 transition-colors">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2 truncate">{doctor.name}</h3>
+                  </Link>
                   <p className="text-gray-500 text-sm line-clamp-2 mb-6 font-medium leading-relaxed">
                     {doctor.bio}
                   </p>
@@ -162,12 +122,20 @@ export default function Doctors() {
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => setSelectedDoctor(doctor)}
-                    className="w-full bg-gray-50 text-gray-900 py-4 rounded-2xl font-bold hover:bg-blue-600 hover:text-white transition-all active:scale-95 border border-gray-100 mt-auto"
-                  >
-                    Book Appointment
-                  </button>
+                  <div className="flex gap-2">
+                    <Link
+                      to={`/doctors/${doctor.id}`}
+                      className="flex-1 bg-gray-50 text-center text-gray-900 py-4 rounded-2xl font-bold hover:bg-gray-100 transition-all active:scale-95 border border-gray-100"
+                    >
+                      View Profile
+                    </Link>
+                    <button
+                      onClick={() => setSelectedDoctor(doctor)}
+                      className="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-bold hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-100"
+                    >
+                      Book Now
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             ))}

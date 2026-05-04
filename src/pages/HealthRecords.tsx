@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { db } from '../lib/firebase';
-import { collection, query, where, orderBy, onSnapshot, addDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'motion/react';
 import { Clipboard, Plus, Search, FileText, Calendar, Filter, X, Check, Save } from 'lucide-react';
 import { format } from 'date-fns';
@@ -24,18 +22,21 @@ export default function HealthRecords() {
   useEffect(() => {
     if (!user) return;
 
-    const q = query(
-      collection(db, 'health_records'),
-      where('patientId', '==', user.uid),
-      orderBy('date', 'desc')
-    );
+    const fetchRecords = async () => {
+      try {
+        const res = await fetch('/api/records');
+        if (res.ok) {
+          const data = await res.json();
+          setRecords(data);
+        }
+      } catch (err) {
+        console.error("Error fetching records:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setRecords(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      setLoading(false);
-    });
-
-    return unsubscribe;
+    fetchRecords();
   }, [user]);
 
   const handleAddRecord = async (e: React.FormEvent) => {
@@ -43,17 +44,23 @@ export default function HealthRecords() {
     if (!user) return;
 
     try {
-      await addDoc(collection(db, 'health_records'), {
-        patientId: user.uid,
-        title,
-        type,
-        date,
-        content,
-        createdAt: new Date().toISOString()
+      const res = await fetch('/api/records', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          type,
+          date,
+          content
+        })
       });
-      setIsAdding(false);
-      setTitle('');
-      setContent('');
+      if (res.ok) {
+        const newDoc = await res.json();
+        setRecords([newDoc, ...records]);
+        setIsAdding(false);
+        setTitle('');
+        setContent('');
+      }
     } catch (error) {
       console.error("Error adding record:", error);
     }

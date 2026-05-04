@@ -3,8 +3,6 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Calendar as CalendarIcon, Clock, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { db } from '../../lib/firebase';
-import { collection, addDoc } from 'firebase/firestore';
 
 interface Doctor {
   id: string;
@@ -25,25 +23,45 @@ export default function BookingModal({ doctor, onClose }: BookingModalProps) {
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user) {
+      setError("Please log in to book an appointment");
+      return;
+    }
+    if (!date || !time) {
+      setError("Please select both date and time");
+      return;
+    }
 
     setLoading(true);
+    setError(null);
     try {
-      await addDoc(collection(db, 'appointments'), {
-        patientId: user.uid,
-        doctorId: doctor.id,
-        dateTime: new Date(`${date}T${time}`).toISOString(),
-        status: 'pending',
-        notes,
-        createdAt: new Date().toISOString()
+      const res = await fetch('/api/appointments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          doctorId: doctor.id,
+          dateTime: new Date(`${date}T${time}`).toISOString(),
+          docName: doctor.name,
+          specialty: doctor.specialty,
+          status: 'pending',
+          notes,
+        })
       });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to book appointment');
+      }
+
       setSuccess(true);
       setTimeout(onClose, 2000);
-    } catch (error) {
-      console.error("Booking error:", error);
+    } catch (err: any) {
+      console.error("Booking error:", err);
+      setError(err.message || "An unexpected error occurred");
     } finally {
       setLoading(false);
     }
@@ -79,6 +97,13 @@ export default function BookingModal({ doctor, onClose }: BookingModalProps) {
                 <X className="h-6 w-6 text-gray-400" />
               </button>
             </div>
+
+            {error && (
+              <div className="mb-6 bg-rose-50 text-rose-600 p-4 rounded-2xl flex items-center gap-3 text-sm font-medium">
+                <AlertCircle className="h-5 w-5" />
+                {error}
+              </div>
+            )}
 
             {success ? (
               <div className="py-12 text-center">

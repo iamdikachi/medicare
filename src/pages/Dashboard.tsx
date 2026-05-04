@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { db } from '../lib/firebase';
-import { collection, query, where, orderBy, getDocs, onSnapshot } from 'firebase/firestore';
 import { motion } from 'motion/react';
 import { Calendar, Clipboard, TrendingUp, Clock, Plus, ArrowUpRight, Activity, Heart, Droplets } from 'lucide-react';
 import { format } from 'date-fns';
@@ -16,33 +14,22 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user) return;
 
-    // Fetch appointments
-    const qApp = query(
-      collection(db, 'appointments'),
-      where('patientId', '==', user.uid),
-      orderBy('dateTime', 'asc')
-    );
-
-    const unsubscribeApp = onSnapshot(qApp, (snapshot) => {
-      setAppointments(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    });
-
-    // Fetch health records
-    const qRec = query(
-      collection(db, 'health_records'),
-      where('patientId', '==', user.uid),
-      orderBy('date', 'desc')
-    );
-
-    const unsubscribeRec = onSnapshot(qRec, (snapshot) => {
-      setRecords(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      setLoading(false);
-    });
-
-    return () => {
-      unsubscribeApp();
-      unsubscribeRec();
+    const fetchData = async () => {
+      try {
+        const [appRes, recRes] = await Promise.all([
+          fetch('/api/appointments'),
+          fetch('/api/records')
+        ]);
+        if (appRes.ok) setAppointments(await appRes.json());
+        if (recRes.ok) setRecords(await recRes.json());
+      } catch (err) {
+        console.error("Data fetch error", err);
+      } finally {
+        setLoading(false);
+      }
     };
+
+    fetchData();
   }, [user]);
 
   const stats = [
