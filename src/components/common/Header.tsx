@@ -1,52 +1,76 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Activity, User as UserIcon, LogOut, Calendar, Clipboard, Users } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Activity, User as UserIcon, LogOut, Menu, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
-export default function Header() {
-  const { user, profile, login, logout } = useAuth();
+interface HeaderProps {
+  onMenuClick?: () => void;
+  isSidebarOpen?: boolean;
+}
+
+export default function Header({ onMenuClick, isSidebarOpen }: HeaderProps) {
+  const { user, profile, logout } = useAuth();
   const location = useLocation();
 
-  const navigation = [
-    { name: 'Doctors', href: '/doctors', icon: Users },
-    { name: 'Appointments', href: '/appointments', icon: Calendar },
-    { name: 'Records', href: '/records', icon: Clipboard },
+  const isPublicPage = ['/', '/login', '/signup', '/how-it-works'].includes(location.pathname);
+
+  const navLinks = [
+    { name: 'Home', href: '/' },
+    { name: 'How It Works', href: '/how-it-works' },
+    { name: 'Contact', href: '/#contact' },
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur-md">
+    <header className={cn(
+      "sticky top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur-md",
+      user && !isPublicPage ? "lg:hidden" : "block"
+    )}>
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="bg-blue-600 p-1.5 rounded-lg group-hover:bg-blue-700 transition-colors">
-            <Activity className="h-6 w-6 text-white" />
-          </div>
-          <span className="font-sans font-bold text-xl tracking-tight text-gray-900">
-            MediCare
-          </span>
-        </Link>
-
-        <nav className="hidden md:flex items-center gap-8">
-          {navigation.map((item) => (
-            <Link
-              key={item.name}
-              to={item.href}
-              className={cn(
-                "text-sm font-medium transition-colors hover:text-blue-600 flex items-center gap-1.5",
-                location.pathname === item.href ? "text-blue-600" : "text-gray-600"
-              )}
+        <div className="flex items-center gap-4">
+          {/* Mobile Menu Toggle */}
+          {user && (
+            <button
+              onClick={onMenuClick}
+              className="lg:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="Toggle Menu"
             >
-              <item.icon className="h-4 w-4" />
-              {item.name}
-            </Link>
-          ))}
-        </nav>
+              {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          )}
+
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="bg-blue-600 p-1.5 rounded-lg group-hover:bg-blue-700 transition-colors">
+              <Activity className="h-6 w-6 text-white" />
+            </div>
+            <span className="font-sans font-bold text-xl tracking-tight text-gray-900">
+              MediCare
+            </span>
+          </Link>
+
+          {/* Desktop Public Nav */}
+          {!user && (
+            <nav className="hidden md:flex items-center ml-8 gap-6">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  to={link.href}
+                  className={cn(
+                    "text-sm font-bold transition-colors hover:text-blue-600",
+                    location.pathname === link.href ? "text-blue-600" : "text-gray-500"
+                  )}
+                >
+                  {link.name}
+                </Link>
+              ))}
+            </nav>
+          )}
+        </div>
 
         <div className="flex items-center gap-4">
           {user ? (
             <div className="flex items-center gap-4">
-              <Link to="/dashboard" className="flex items-center gap-2 group">
-                <div className="flex flex-col items-end mr-1">
+              <Link to="/profile" className="flex items-center gap-2 group">
+                <div className="hidden sm:flex flex-col items-end mr-1">
                   <span className="text-sm font-medium text-gray-900 leading-none">
                     {profile?.displayName || 'User'}
                   </span>
@@ -57,7 +81,7 @@ export default function Header() {
                 <img
                   src={profile?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}`}
                   alt="Avatar"
-                  className="h-9 w-9 rounded-full ring-2 ring-blue-50 group-hover:ring-blue-100 transition-all"
+                  className="h-9 w-9 rounded-full ring-2 ring-blue-50 group-hover:ring-blue-100 transition-all border border-gray-100"
                   referrerPolicy="no-referrer"
                 />
               </Link>

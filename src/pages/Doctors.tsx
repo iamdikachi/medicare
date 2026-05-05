@@ -5,7 +5,7 @@ import { cn } from '../lib/utils';
 import { Link } from 'react-router-dom';
 import BookingModal from '../components/appointments/BookingModal';
 
-interface Doctor {
+export interface Doctor {
   id: string;
   uid: string;
   name: string;
@@ -15,6 +15,7 @@ interface Doctor {
   experienceYears: number;
   consultationFee: number;
   photoURL: string;
+  availableSlots?: string[];
 }
 
 export default function Doctors() {
@@ -111,7 +112,7 @@ export default function Doctors() {
                     {doctor.bio}
                   </p>
                   
-                  <div className="grid grid-cols-2 gap-4 mb-8">
+                  <div className="grid grid-cols-2 gap-4 mb-6">
                     <div className="flex items-center gap-2 text-gray-600">
                       <Clock className="h-4 w-4 text-blue-500" />
                       <span className="text-xs font-bold">{doctor.experienceYears} Years Exp.</span>
@@ -122,7 +123,31 @@ export default function Doctors() {
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
+                  {doctor.availableSlots && doctor.availableSlots.length > 0 && (
+                    <div className="mb-8">
+                       <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                         Next Available Today
+                       </div>
+                       <div className="flex flex-wrap gap-2">
+                         {doctor.availableSlots.slice(0, 3).map((slot) => (
+                           <div 
+                             key={slot}
+                             className="px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-gray-700"
+                           >
+                             {slot}
+                           </div>
+                         ))}
+                         {doctor.availableSlots.length > 3 && (
+                           <div className="px-3 py-1.5 text-[10px] text-gray-400 font-bold flex items-center">
+                             +{doctor.availableSlots.length - 3} more
+                           </div>
+                         )}
+                       </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 mt-auto">
                     <Link
                       to={`/doctors/${doctor.id}`}
                       className="flex-1 bg-gray-50 text-center text-gray-900 py-4 rounded-2xl font-bold hover:bg-gray-100 transition-all active:scale-95 border border-gray-100"

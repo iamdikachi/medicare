@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Shield, Clock, Heart, Users, CheckCircle, ArrowRight, Activity } from 'lucide-react';
+import { Shield, Clock, Heart, Users, CheckCircle, ArrowRight, Activity, Phone, Mail } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { cn } from '../lib/utils';
 import { Link } from 'react-router-dom';
@@ -201,55 +201,108 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-50 pt-20 pb-10 border-t border-gray-100">
+      {/* Contact Section */}
+      <section id="contact" className="py-32 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-12 mb-20">
-            <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="bg-blue-600 p-1.5 rounded-lg">
-                  <Activity className="h-6 w-6 text-white" />
+          <div className="max-w-5xl mx-auto bg-gray-900 rounded-[4rem] overflow-hidden flex flex-col md:flex-row shadow-2xl">
+            <div className="md:w-1/2 p-12 md:p-20 text-white">
+              <h2 className="text-4xl font-bold mb-8 tracking-tight">Get in touch <br/> <span className="text-blue-500">with us.</span></h2>
+              <div className="space-y-8">
+                <div className="flex items-center gap-6">
+                  <div className="bg-white/10 p-4 rounded-2xl">
+                    <Phone className="h-6 w-6 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-1">Call Us</p>
+                    <p className="text-xl font-bold">+1 (555) 000-HEALTH</p>
+                  </div>
                 </div>
-                <span className="font-sans font-bold text-xl tracking-tight text-gray-900">
+                <div className="flex items-center gap-6">
+                  <div className="bg-white/10 p-4 rounded-2xl">
+                    <Mail className="h-6 w-6 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-1">Email Us</p>
+                    <p className="text-xl font-bold">support@medicare.com</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="md:w-1/2 bg-blue-600 p-12 md:p-20">
+               <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+                 <div>
+                   <input type="text" placeholder="Your Name" className="w-full bg-white/10 border border-white/20 rounded-2xl px-6 py-5 text-white placeholder-white/50 focus:bg-white/20 outline-none transition-all font-bold" />
+                 </div>
+                 <div>
+                   <input type="email" placeholder="Email Address" className="w-full bg-white/10 border border-white/20 rounded-2xl px-6 py-5 text-white placeholder-white/50 focus:bg-white/20 outline-none transition-all font-bold" />
+                 </div>
+                 <div>
+                   <textarea placeholder="How can we help?" rows={4} className="w-full bg-white/10 border border-white/20 rounded-2xl px-6 py-5 text-white placeholder-white/50 focus:bg-white/20 outline-none transition-all font-bold resize-none"></textarea>
+                 </div>
+                 <button className="w-full bg-white text-blue-600 font-black py-6 rounded-2xl hover:bg-gray-100 transition-all shadow-xl active:scale-95 text-lg">
+                   Send Message
+                 </button>
+               </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-white pt-24 pb-12 border-t border-gray-100">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-4 gap-12 mb-16">
+            <div className="col-span-2">
+              <Link to="/" className="flex items-center gap-2 group mb-6">
+                <div className="bg-blue-600 p-1.5 rounded-lg">
+                  <Activity className="h-5 w-5 text-white" />
+                </div>
+                <span className="font-sans font-black text-xl tracking-tighter text-gray-900">
                   MediCare
                 </span>
-              </div>
-              <p className="text-gray-500 max-w-sm leading-relaxed font-medium">
-                Designing healthcare for the digital age. We provide secure, affordable, and accessible 
-                medical consultations for everyone.
+              </Link>
+              <p className="text-gray-500 font-medium max-w-xs leading-relaxed">
+                Empowering your health through innovative digital solutions and expert consultation.
               </p>
             </div>
             <div>
-              <h4 className="font-bold text-gray-900 mb-6">Explore</h4>
-              <ul className="space-y-4 text-sm font-bold text-gray-500">
-                <li><a href="#" className="hover:text-blue-600 transition-colors">Our Doctors</a></li>
-                <li><a href="#" className="hover:text-blue-600 transition-colors">How it Works</a></li>
-                <li><a href="#" className="hover:text-blue-600 transition-colors">Subscriptions</a></li>
-                <li><a href="#" className="hover:text-blue-600 transition-colors">FAQ</a></li>
+              <h4 className="font-bold text-gray-900 mb-6">Services</h4>
+              <ul className="space-y-4 text-gray-500 font-medium">
+                <li><Link to="/doctors" className="hover:text-blue-600 transition-colors">Find a Doctor</Link></li>
+                <li><Link to="/how-it-works" className="hover:text-blue-600 transition-colors">How it Works</Link></li>
+                <li><Link to="/login" className="hover:text-blue-600 transition-colors">Consultation</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-bold text-gray-900 mb-6">Support</h4>
-              <ul className="space-y-4 text-sm font-bold text-gray-500">
-                <li><a href="#" className="hover:text-blue-600 transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-blue-600 transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-blue-600 transition-colors">Contact Support</a></li>
+              <ul className="space-y-4 text-gray-500 font-medium">
+                <li><a href="#contact" className="hover:text-blue-600 transition-colors">Contact Us</a></li>
+                <li><Link to="/how-it-works" className="hover:text-blue-600 transition-colors">FAQ</Link></li>
+                <li><Link to="/profile" className="hover:text-blue-600 transition-colors">Privacy Policy</Link></li>
               </ul>
             </div>
           </div>
-          <div className="pt-10 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="pt-10 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-8">
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
               © 2026 MediCare Healthcare. All rights reserved.
             </p>
-            <div className="flex items-center gap-6">
-              <Activity className="h-5 w-5 text-gray-300" />
-              <Activity className="h-5 w-5 text-gray-300" />
-              <Activity className="h-5 w-5 text-gray-300" />
+            <div className="flex items-center gap-8 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all">
+              <div className="flex items-center gap-2">
+                 <Shield className="h-5 w-5 text-gray-900" />
+                 <span className="text-[10px] font-bold uppercase tracking-widest">HIPAA Compliant</span>
+              </div>
+              <div className="flex items-center gap-2">
+                 <Activity className="h-5 w-5 text-gray-900" />
+                 <span className="text-[10px] font-bold uppercase tracking-widest">SSL Secure</span>
+              </div>
+              <div className="flex items-center gap-2">
+                 <CheckCircle className="h-5 w-5 text-gray-900" />
+                 <span className="text-[10px] font-bold uppercase tracking-widest">GPDR Ready</span>
+              </div>
             </div>
           </div>
         </div>
       </footer>
     </div>
-
   );
 }

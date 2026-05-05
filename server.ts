@@ -40,7 +40,8 @@ const seedDoctors = () => {
         rating: 4.9,
         experienceYears: 12,
         consultationFee: 50,
-        photoURL: 'https://images.unsplash.com/photo-1559839734-2b71f1e3c77e?auto=format&fit=crop&q=80&w=400'
+        photoURL: 'https://images.unsplash.com/photo-1559839734-2b71f1e3c77e?auto=format&fit=crop&q=80&w=400',
+        availableSlots: ['09:00', '10:30', '14:00', '16:30']
       },
       {
         id: 'doc2',
@@ -50,7 +51,8 @@ const seedDoctors = () => {
         rating: 4.8,
         experienceYears: 8,
         consultationFee: 65,
-        photoURL: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=400'
+        photoURL: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=400',
+        availableSlots: ['08:00', '11:00', '13:00', '15:00']
       },
       {
         id: 'doc3',
@@ -60,7 +62,8 @@ const seedDoctors = () => {
         rating: 5.0,
         experienceYears: 15,
         consultationFee: 40,
-        photoURL: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=400'
+        photoURL: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=400',
+        availableSlots: ['09:30', '12:00', '14:30', '17:00']
       },
       {
         id: 'doc4',
@@ -70,7 +73,8 @@ const seedDoctors = () => {
         rating: 4.7,
         experienceYears: 10,
         consultationFee: 55,
-        photoURL: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=400'
+        photoURL: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=400',
+        availableSlots: ['10:00', '11:30', '13:30', '16:00']
       }
     ];
     fs.writeFileSync(DOCTORS_FILE, JSON.stringify(dummyDoctors, null, 2));
@@ -164,6 +168,31 @@ async function startServer() {
     res.json({ success: true });
   });
 
+  app.patch('/api/auth/profile', authenticate, (req: any, res) => {
+    const { 
+      displayName, photoURL, subscriptionTier, 
+      emergencyContact, bloodType, allergies, chronicConditions 
+    } = req.body;
+    let users = getData(USERS_FILE);
+    const userIndex = users.findIndex((u: any) => u.uid === req.userUid);
+
+    if (userIndex === -1) return res.status(404).json({ error: 'User not found' });
+
+    // Update allowed fields
+    if (displayName !== undefined) users[userIndex].displayName = displayName;
+    if (photoURL !== undefined) users[userIndex].photoURL = photoURL;
+    if (subscriptionTier !== undefined) users[userIndex].subscriptionTier = subscriptionTier;
+    if (emergencyContact !== undefined) users[userIndex].emergencyContact = emergencyContact;
+    if (bloodType !== undefined) users[userIndex].bloodType = bloodType;
+    if (allergies !== undefined) users[userIndex].allergies = allergies;
+    if (chronicConditions !== undefined) users[userIndex].chronicConditions = chronicConditions;
+
+    saveData(USERS_FILE, users);
+
+    const { password: _, ...cleanUser } = users[userIndex];
+    res.json(cleanUser);
+  });
+
   // --- Data API ---
   app.get('/api/doctors', (req, res) => res.json(getData(DOCTORS_FILE)));
   app.get('/api/doctors/:id', (req, res) => {
@@ -198,7 +227,13 @@ async function startServer() {
 
   app.post('/api/records', authenticate, (req: any, res) => {
     const recs = getData(RECORDS_FILE);
-    const newRec = { id: Math.random().toString(36).substring(7), ...req.body, patientId: req.userUid, createdAt: new Date().toISOString() };
+    const { title, type, date, content, attachmentUrl } = req.body;
+    const newRec = { 
+      id: Math.random().toString(36).substring(7), 
+      title, type, date, content, attachmentUrl,
+      patientId: req.userUid, 
+      createdAt: new Date().toISOString() 
+    };
     recs.push(newRec);
     saveData(RECORDS_FILE, recs);
     res.json(newRec);

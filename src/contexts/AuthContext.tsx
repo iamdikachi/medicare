@@ -7,6 +7,15 @@ interface AuthContextType {
   login: () => Promise<void>; // This will now be standard sign in or just removed if not needed, keeping for compat if possible
   signUpWithEmail: (email: string, pass: string, name: string) => Promise<void>;
   signInWithEmail: (email: string, pass: string) => Promise<void>;
+  updateProfile: (data: { 
+    displayName?: string; 
+    photoURL?: string; 
+    subscriptionTier?: string;
+    emergencyContact?: string;
+    bloodType?: string;
+    allergies?: string;
+    chronicConditions?: string;
+  }) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -19,7 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch('/api/auth/me');
+        const res = await fetch('/api/auth/me', { credentials: 'include' });
         if (res.ok) {
           const data = await res.json();
           setUser(data);
@@ -39,6 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const res = await fetch('/api/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ email, password: pass, name })
     });
     const data = await res.json();
@@ -50,10 +60,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ email, password: pass })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Login failed');
+    setUser(data);
+  };
+
+  const updateProfile = async (updateData: { 
+    displayName?: string; 
+    photoURL?: string; 
+    subscriptionTier?: string;
+    emergencyContact?: string;
+    bloodType?: string;
+    allergies?: string;
+    chronicConditions?: string;
+  }) => {
+    const res = await fetch('/api/auth/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(updateData)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Update failed');
     setUser(data);
   };
 
@@ -63,12 +94,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile: user, loading, login, signUpWithEmail, signInWithEmail, logout }}>
+    <AuthContext.Provider value={{ user, profile: user, loading, login, signUpWithEmail, signInWithEmail, updateProfile, logout }}>
       {children}
     </AuthContext.Provider>
   );

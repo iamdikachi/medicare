@@ -25,7 +25,11 @@ interface Doctor {
   experienceYears: number;
   consultationFee: number;
   photoURL: string;
+  availableSlots?: string[];
 }
+
+import CalendarPicker from '../components/appointments/CalendarPicker';
+import { format } from 'date-fns';
 
 export default function DoctorProfile() {
   const { id } = useParams();
@@ -33,6 +37,27 @@ export default function DoctorProfile() {
   const [doctor, setDoctor] = useState<Doctor | null>(null);
   const [loading, setLoading] = useState(true);
   const [isBooking, setIsBooking] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [selectedTime, setSelectedTime] = useState('');
+
+  // Simulation: Filter available slots based on the selected date (e.g. fewer slots on weekends)
+  const getDynamicSlots = (dateString: string) => {
+    const date = new Date(dateString);
+    const day = date.getDay();
+    const baseSlots = doctor?.availableSlots || ['09:00', '10:30', '11:00', '14:00', '15:30', '16:00'];
+    
+    // Simulating "filtering" by day
+    if (day === 0 || day === 6) { // Weekend
+      return baseSlots.slice(0, 2); // Fewer slots
+    }
+    // Mix it up for demonstration
+    if (day % 2 === 0) {
+      return baseSlots.filter((_, i) => i % 2 === 0);
+    }
+    return baseSlots;
+  };
+
+  const currentSlots = getDynamicSlots(selectedDate);
 
   useEffect(() => {
     async function fetchDoctor() {
@@ -150,6 +175,42 @@ export default function DoctorProfile() {
               </div>
             </motion.div>
 
+            <section className="bg-white rounded-[3rem] p-10 shadow-sm border border-gray-100 overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 blur-3xl opacity-50" />
+              
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
+                <div className="flex items-center gap-4">
+                  <div className="bg-blue-600 p-3 rounded-2xl shadow-lg shadow-blue-200">
+                    <Calendar className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900 tracking-tight">Doctor's Availability</h3>
+                    <p className="text-sm text-gray-500 font-medium">Select a date to filter available slots</p>
+                  </div>
+                </div>
+                {selectedDate && (
+                  <div className="bg-gray-50 px-4 py-2 rounded-xl flex items-center gap-2 border border-blue-50">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+                    <span className="text-sm font-bold text-gray-700">{format(new Date(selectedDate), 'MMMM d, yyyy')}</span>
+                  </div>
+                )}
+              </div>
+              
+              <CalendarPicker
+                selectedDate={selectedDate}
+                onDateSelect={(date) => {
+                  setSelectedDate(date);
+                  setSelectedTime('');
+                }}
+                selectedTime={selectedTime}
+                onTimeSelect={(time) => {
+                  setSelectedTime(time);
+                  setIsBooking(true);
+                }}
+                availableSlots={currentSlots}
+              />
+            </section>
+
             {/* Detailed sections */}
             <div className="grid md:grid-cols-2 gap-8">
               <section className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-gray-100">
@@ -250,6 +311,8 @@ export default function DoctorProfile() {
         <BookingModal
           doctor={doctor}
           onClose={() => setIsBooking(false)}
+          initialDate={selectedDate}
+          initialTime={selectedTime}
         />
       )}
     </div>

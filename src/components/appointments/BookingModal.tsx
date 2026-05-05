@@ -2,6 +2,8 @@ import { useState } from 'react';
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Calendar as CalendarIcon, Clock, AlertCircle, CheckCircle2 } from 'lucide-react';
+import CalendarPicker from './CalendarPicker';
+import { format } from 'date-fns';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface Doctor {
@@ -9,21 +11,26 @@ interface Doctor {
   name: string;
   specialty: string;
   consultationFee: number;
+  availableSlots?: string[];
 }
 
 interface BookingModalProps {
   doctor: Doctor;
   onClose: () => void;
+  initialDate?: string;
+  initialTime?: string;
 }
 
-export default function BookingModal({ doctor, onClose }: BookingModalProps) {
+export default function BookingModal({ doctor, onClose, initialDate, initialTime }: BookingModalProps) {
   const { user } = useAuth();
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
+  const [date, setDate] = useState(initialDate || format(new Date(), 'yyyy-MM-dd'));
+  const [time, setTime] = useState(initialTime || '');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const availableSlots = doctor.availableSlots || ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +49,7 @@ export default function BookingModal({ doctor, onClose }: BookingModalProps) {
       const res = await fetch('/api/appointments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           doctorId: doctor.id,
           dateTime: new Date(`${date}T${time}`).toISOString(),
@@ -82,7 +90,7 @@ export default function BookingModal({ doctor, onClose }: BookingModalProps) {
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl overflow-hidden"
+          className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
         >
           <div className="p-8">
             <div className="flex items-center justify-between mb-8">
@@ -122,34 +130,14 @@ export default function BookingModal({ doctor, onClose }: BookingModalProps) {
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-gray-700 ml-1">Date</label>
-                    <div className="relative">
-                      <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <input
-                        required
-                        type="date"
-                        min={new Date().toISOString().split('T')[0]}
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
-                        className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-gray-700 ml-1">Time</label>
-                    <div className="relative">
-                      <Clock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <input
-                        required
-                        type="time"
-                        value={time}
-                        onChange={(e) => setTime(e.target.value)}
-                        className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900"
-                      />
-                    </div>
-                  </div>
+                <div className="space-y-6">
+                  <CalendarPicker
+                    selectedDate={date}
+                    onDateSelect={setDate}
+                    selectedTime={time}
+                    onTimeSelect={setTime}
+                    availableSlots={availableSlots}
+                  />
                 </div>
 
                 <div className="space-y-2">

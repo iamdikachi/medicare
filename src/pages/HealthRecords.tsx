@@ -18,13 +18,14 @@ export default function HealthRecords() {
   const [type, setType] = useState('diagnosis');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [content, setContent] = useState('');
+  const [attachmentUrl, setAttachmentUrl] = useState('');
 
   useEffect(() => {
     if (!user) return;
 
     const fetchRecords = async () => {
       try {
-        const res = await fetch('/api/records');
+        const res = await fetch('/api/records', { credentials: 'include' });
         if (res.ok) {
           const data = await res.json();
           setRecords(data);
@@ -47,11 +48,13 @@ export default function HealthRecords() {
       const res = await fetch('/api/records', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           title,
           type,
           date,
-          content
+          content,
+          attachmentUrl
         })
       });
       if (res.ok) {
@@ -60,6 +63,7 @@ export default function HealthRecords() {
         setIsAdding(false);
         setTitle('');
         setContent('');
+        setAttachmentUrl('');
       }
     } catch (error) {
       console.error("Error adding record:", error);
@@ -136,30 +140,41 @@ export default function HealthRecords() {
                           className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900"
                         />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-sm font-bold text-gray-700 ml-1">Type</label>
-                          <select
-                            value={type}
-                            onChange={(e) => setType(e.target.value)}
-                            className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900"
-                          >
-                            <option value="diagnosis">Diagnosis</option>
-                            <option value="prescription">Prescription</option>
-                            <option value="test_result">Test Result</option>
-                            <option value="history">General History</option>
-                          </select>
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-sm font-bold text-gray-700 ml-1">Date</label>
-                          <input
-                            required
-                            type="date"
-                            value={date}
-                            onChange={(e) => setDate(e.target.value)}
-                            className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900"
-                          />
-                        </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-700 ml-1">Attachment URL (Optional)</label>
+                        <input
+                          type="text"
+                          value={attachmentUrl}
+                          onChange={(e) => setAttachmentUrl(e.target.value)}
+                          placeholder="Link to PDF or Image"
+                          className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-700 ml-1">Type</label>
+                        <select
+                          value={type}
+                          onChange={(e) => setType(e.target.value)}
+                          className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900"
+                        >
+                          <option value="diagnosis">Diagnosis</option>
+                          <option value="prescription">Prescription</option>
+                          <option value="test_result">Test Result</option>
+                          <option value="history">General History</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-700 ml-1">Date</label>
+                        <input
+                          required
+                          type="date"
+                          value={date}
+                          onChange={(e) => setDate(e.target.value)}
+                          className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900"
+                        />
                       </div>
                     </div>
 
@@ -242,9 +257,16 @@ export default function HealthRecords() {
                            </div>
                            <h3 className="text-2xl font-bold text-gray-900 leading-tight">{record.title}</h3>
                         </div>
-                        <button className="h-fit px-5 py-2.5 bg-gray-50 text-gray-900 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors uppercase tracking-wider">
-                          View PDF
-                        </button>
+                        {record.attachmentUrl && (
+                          <a 
+                            href={record.attachmentUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="h-fit px-5 py-2.5 bg-gray-50 text-gray-900 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors uppercase tracking-wider text-center"
+                          >
+                            View Document
+                          </a>
+                        )}
                       </div>
                       <p className="text-gray-600 font-medium leading-relaxed max-w-3xl">
                         {record.content}
