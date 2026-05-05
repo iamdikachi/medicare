@@ -16,8 +16,10 @@ import VideoCall from './pages/VideoCall';
 import HowItWorks from './pages/HowItWorks';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Subscription from './pages/Subscription';
 import { useLocation } from 'react-router-dom';
 import { cn } from './lib/utils';
+import NotificationManager from './components/NotificationManager';
 
 
 function AppRoutes() {
@@ -38,6 +40,7 @@ function AppRoutes() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-white">
+      {user && <NotificationManager />}
       {showDashboardLayout && (
         <Sidebar 
           isOpen={isSidebarOpen} 
@@ -70,6 +73,7 @@ function AppRoutes() {
             <Route path="/doctors/:id" element={<DoctorProfile />} />
             <Route path="/appointments" element={user ? <Appointments /> : <Navigate to="/login" />} />
             <Route path="/records" element={user ? <HealthRecords /> : <Navigate to="/login" />} />
+            <Route path="/subscription" element={user ? <Subscription /> : <Navigate to="/login" />} />
           </Routes>
         </main>
       </div>

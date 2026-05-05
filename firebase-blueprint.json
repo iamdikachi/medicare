@@ -11,6 +11,15 @@
         "photoURL": { "type": "string" },
         "role": { "type": "string", "enum": ["patient", "doctor", "admin"] },
         "subscriptionTier": { "type": "string", "enum": ["free", "basic", "premium"] },
+        "reminderPreferences": {
+          "type": "object",
+          "properties": {
+            "email": { "type": "boolean" },
+            "inApp": { "type": "boolean" },
+            "remind24h": { "type": "boolean" },
+            "remind1h": { "type": "boolean" }
+          }
+        },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["uid", "email", "role"]
@@ -59,6 +68,21 @@
         "doctorId": { "type": "string" }
       },
       "required": ["patientId", "title", "type", "date"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "In-app notification message",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string", "enum": ["appointment_reminder", "system", "health_alert"] },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "appointmentId": { "type": "string" }
+      },
+      "required": ["userId", "title", "message", "type", "createdAt"]
     }
   },
   "firestore": {
@@ -77,6 +101,10 @@
     "/health_records/{recordId}": {
       "schema": "HealthRecord",
       "description": "Secure medical history"
+    },
+    "/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "User notifications"
     }
   }
 }

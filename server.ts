@@ -171,7 +171,8 @@ async function startServer() {
   app.patch('/api/auth/profile', authenticate, (req: any, res) => {
     const { 
       displayName, photoURL, subscriptionTier, 
-      emergencyContact, bloodType, allergies, chronicConditions 
+      emergencyContact, bloodType, allergies, chronicConditions,
+      reminderPreferences
     } = req.body;
     let users = getData(USERS_FILE);
     const userIndex = users.findIndex((u: any) => u.uid === req.userUid);
@@ -186,6 +187,7 @@ async function startServer() {
     if (bloodType !== undefined) users[userIndex].bloodType = bloodType;
     if (allergies !== undefined) users[userIndex].allergies = allergies;
     if (chronicConditions !== undefined) users[userIndex].chronicConditions = chronicConditions;
+    if (reminderPreferences !== undefined) users[userIndex].reminderPreferences = reminderPreferences;
 
     saveData(USERS_FILE, users);
 
@@ -203,6 +205,19 @@ async function startServer() {
   app.get('/api/appointments', authenticate, (req: any, res) => {
     const apps = getData(APPOINTMENTS_FILE).filter((a: any) => a.patientId === req.userUid);
     res.json(apps);
+  });
+
+  app.patch('/api/appointments/:id', authenticate, (req: any, res) => {
+    const { status } = req.body;
+    let apps = getData(APPOINTMENTS_FILE);
+    const appIndex = apps.findIndex((a: any) => a.id === req.params.id && a.patientId === req.userUid);
+
+    if (appIndex === -1) return res.status(404).json({ error: 'Appointment not found' });
+
+    if (status !== undefined) apps[appIndex].status = status;
+    saveData(APPOINTMENTS_FILE, apps);
+
+    res.json(apps[appIndex]);
   });
 
   app.post('/api/appointments', authenticate, (req: any, res) => {

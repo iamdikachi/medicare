@@ -27,7 +27,22 @@ service cloud.firestore {
       allow get: if isOwner(userId);
       allow create: if isVerified() && isValidId(userId) && isValidUser(incoming());
       allow update: if isOwner(userId) && isValidUser(incoming()) && 
-                    incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'subscriptionTier']);
+                    incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'subscriptionTier', 'reminderPreferences']);
+    }
+
+    // Notification Validation
+    function isValidNotification(data) {
+      return data.keys().hasAll(['userId', 'title', 'message', 'type', 'createdAt']) &&
+             data.userId is string &&
+             data.type in ['appointment_reminder', 'system', 'health_alert'];
+    }
+
+    match /notifications/{notificationId} {
+      allow get: if isSignedIn() && isOwner(existing().userId);
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && isOwner(existing().userId) && 
+                    incoming().diff(existing()).affectedKeys().hasOnly(['read']);
+      allow delete: if isSignedIn() && isOwner(existing().userId);
     }
 
     // Doctor Validation

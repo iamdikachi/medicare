@@ -1,14 +1,21 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'motion/react';
-import { User, Mail, Camera, CreditCard, Save, AlertCircle, CheckCircle2, ChevronRight, Shield, Phone, Droplet, Thermometer, Activity } from 'lucide-react';
+import { User, Mail, Camera, CreditCard, Save, AlertCircle, CheckCircle2, ChevronRight, Shield, Phone, Droplet, Thermometer, Activity, Bell, ExternalLink } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { Link } from 'react-router-dom';
 
 export default function Profile() {
   const { user, updateProfile } = useAuth();
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [photoURL, setPhotoURL] = useState(user?.photoURL || '');
   const [subscriptionTier, setSubscriptionTier] = useState(user?.subscriptionTier || 'free');
+  const [reminderPreferences, setReminderPreferences] = useState(user?.reminderPreferences || {
+    email: true,
+    inApp: true,
+    remind24h: true,
+    remind1h: true
+  });
   const [emergencyContact, setEmergencyContact] = useState(user?.emergencyContact || '');
   const [bloodType, setBloodType] = useState(user?.bloodType || '');
   const [allergies, setAllergies] = useState(user?.allergies || '');
@@ -27,7 +34,8 @@ export default function Profile() {
     try {
       await updateProfile({ 
         displayName, photoURL, subscriptionTier,
-        emergencyContact, bloodType, allergies, chronicConditions 
+        emergencyContact, bloodType, allergies, chronicConditions,
+        reminderPreferences
       });
       setSuccess('Profile updated successfully!');
       setTimeout(() => setSuccess(''), 3000);
@@ -205,43 +213,111 @@ export default function Profile() {
 
               <section>
                 <div className="flex items-center gap-3 mb-8">
-                  <div className="bg-purple-50 p-2 rounded-xl">
-                    <CreditCard className="h-5 w-5 text-purple-600" />
+                  <div className="bg-blue-50 p-2 rounded-xl">
+                    <Bell className="h-5 w-5 text-blue-600" />
                   </div>
-                  <h2 className="text-xl font-bold text-gray-900 uppercase tracking-tight">Subscription Plan</h2>
+                  <h2 className="text-xl font-bold text-gray-900 uppercase tracking-tight">Notification Settings</h2>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-6">
-                  {tiers.map((tier) => (
-                    <button
-                      key={tier.id}
-                      type="button"
-                      onClick={() => setSubscriptionTier(tier.id)}
-                      className={cn(
-                        "text-left p-6 rounded-3xl border-2 transition-all group relative overflow-hidden",
-                        subscriptionTier === tier.id 
-                          ? "border-blue-600 bg-blue-50/50" 
-                          : "border-gray-100 bg-white hover:border-gray-200"
-                      )}
-                    >
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="font-bold text-gray-900">{tier.name}</div>
-                        {subscriptionTier === tier.id && (
-                          <div className="bg-blue-600 rounded-full p-1">
-                             <CheckCircle2 className="h-4 w-4 text-white" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="text-2xl font-bold text-gray-900 mb-6">{tier.price}</div>
-                      <ul className="space-y-2">
-                         {tier.features.map((f, i) => (
-                           <li key={i} className="text-xs text-gray-500 font-medium flex items-center gap-2">
-                             <div className="w-1 h-1 bg-gray-300 rounded-full" /> {f}
-                           </li>
-                         ))}
-                      </ul>
-                    </button>
-                  ))}
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-bold text-gray-700 ml-1">Channels</h3>
+                    <div className="space-y-3">
+                      <label className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl cursor-pointer hover:bg-gray-100 transition-all">
+                        <div className="flex items-center gap-3">
+                           <div className="p-2 bg-white rounded-lg shadow-sm">
+                             <Mail className="h-4 w-4 text-blue-600" />
+                           </div>
+                           <span className="text-sm font-bold text-gray-700">Email Notifications</span>
+                        </div>
+                        <input 
+                          type="checkbox" 
+                          checked={reminderPreferences.email}
+                          onChange={(e) => setReminderPreferences({...reminderPreferences, email: e.target.checked})}
+                          className="w-5 h-5 rounded-lg border-gray-300 text-blue-600 focus:ring-blue-600 transition-all"
+                        />
+                      </label>
+                      <label className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl cursor-pointer hover:bg-gray-100 transition-all">
+                        <div className="flex items-center gap-3">
+                           <div className="p-2 bg-white rounded-lg shadow-sm">
+                             <Bell className="h-4 w-4 text-orange-500" />
+                           </div>
+                           <span className="text-sm font-bold text-gray-700">In-App Notifications</span>
+                        </div>
+                        <input 
+                          type="checkbox" 
+                          checked={reminderPreferences.inApp}
+                          onChange={(e) => setReminderPreferences({...reminderPreferences, inApp: e.target.checked})}
+                          className="w-5 h-5 rounded-lg border-gray-300 text-blue-600 focus:ring-blue-600 transition-all"
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-bold text-gray-700 ml-1">Appointment Reminders</h3>
+                    <div className="space-y-3">
+                      <label className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl cursor-pointer hover:bg-gray-100 transition-all">
+                        <span className="text-sm font-bold text-gray-700">24 Hours Before</span>
+                        <input 
+                          type="checkbox" 
+                          checked={reminderPreferences.remind24h}
+                          onChange={(e) => setReminderPreferences({...reminderPreferences, remind24h: e.target.checked})}
+                          className="w-5 h-5 rounded-lg border-gray-300 text-blue-600 focus:ring-blue-600 transition-all"
+                        />
+                      </label>
+                      <label className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl cursor-pointer hover:bg-gray-100 transition-all">
+                        <span className="text-sm font-bold text-gray-700">1 Hour Before</span>
+                        <input 
+                          type="checkbox" 
+                          checked={reminderPreferences.remind1h}
+                          onChange={(e) => setReminderPreferences({...reminderPreferences, remind1h: e.target.checked})}
+                          className="w-5 h-5 rounded-lg border-gray-300 text-blue-600 focus:ring-blue-600 transition-all"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section>
+                <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-purple-50 p-2 rounded-xl">
+                      <CreditCard className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-900 uppercase tracking-tight">Subscription Plan</h2>
+                  </div>
+                  <Link 
+                    to="/subscription" 
+                    className="text-xs font-black text-blue-600 uppercase tracking-widest flex items-center gap-2 hover:underline"
+                  >
+                    Manage Plan
+                    <ExternalLink className="h-3 w-3" />
+                  </Link>
+                </div>
+
+                <div className="bg-gray-50 rounded-[2.5rem] p-8 border border-gray-100 flex items-center justify-between group hover:bg-gray-100/50 transition-all">
+                  <div className="flex items-center gap-6">
+                    <div className={cn(
+                      "h-16 w-16 rounded-2xl flex items-center justify-center shadow-sm",
+                      user?.subscriptionTier === 'free' ? "bg-white text-gray-400" : "bg-blue-600 text-white"
+                    )}>
+                      {user?.subscriptionTier === 'premium' ? <Shield className="h-8 w-8" /> : 
+                       user?.subscriptionTier === 'basic' ? <Activity className="h-8 w-8" /> :
+                       <User className="h-8 w-8" />}
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Active Plan</p>
+                      <h3 className="text-xl font-black text-gray-900 capitalize">{user?.subscriptionTier} Member</h3>
+                    </div>
+                  </div>
+                  <Link 
+                    to="/subscription" 
+                    className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center border border-gray-200 shadow-sm group-hover:border-blue-200 group-hover:text-blue-600 transition-all"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </Link>
                 </div>
               </section>
 

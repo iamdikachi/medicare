@@ -8,11 +8,16 @@ import {
   User as UserIcon, 
   Settings, 
   ChevronDown,
-  Activity
+  Activity,
+  CheckCircle2,
+  Clock,
+  CreditCard
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { Link } from 'react-router-dom';
+import { getNotifications, markNotificationAsRead, AppNotification } from '../../services/notificationService';
+import { formatDistanceToNow } from 'date-fns';
 
 interface DashboardHeaderProps {
   onMenuClick: () => void;
@@ -21,7 +26,10 @@ interface DashboardHeaderProps {
 export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   const { user, profile, logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -29,10 +37,21 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
       }
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+        setIsNotifOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    const unsubscribe = getNotifications(user.uid, setNotifications);
+    return () => unsubscribe();
+  }, [user]);
+
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   if (!user) return null;
 
@@ -66,10 +85,95 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
 
       <div className="flex items-center gap-2 md:gap-6">
         {/* Notifications */}
-        <button className="p-2.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all relative group">
-          <Bell className="h-5 w-5 transition-transform group-hover:scale-110" />
-          <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-        </button>
+        <div className="relative" ref={notifRef}>
+          <button 
+            onClick={() => setIsNotifOpen(!isNotifOpen)}
+            className={cn(
+              "p-2.5 rounded-xl transition-all relative group",
+              isNotifOpen ? "bg-blue-50 text-blue-600" : "text-gray-400 hover:text-blue-600 hover:bg-blue-50"
+            )}
+          >
+            <Bell className="h-5 w-5 transition-transform group-hover:scale-110" />
+            {unreadCount > 0 && (
+              <span className="absolute top-2 right-2 w-4 h-4 bg-red-500 rounded-full border-2 border-white text-[10px] text-white flex items-center justify-center font-bold">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+
+          <AnimatePresence>
+            {isNotifOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                className="absolute right-0 mt-3 w-80 md:w-96 bg-white rounded-3xl shadow-2xl shadow-gray-200/50 border border-gray-100 py-3 overflow-hidden flex flex-col max-h-[500px]"
+              >
+                <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
+                  <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">Notifications</h3>
+                  {unreadCount > 0 && (
+                    <span className="bg-blue-50 text-blue-600 text-[10px] font-black px-2 py-1 rounded-lg uppercase">
+                      {unreadCount} New
+                    </span>
+                  )}
+                </div>
+
+                <div className="overflow-y-auto flex-1">
+                  {notifications.length === 0 ? (
+                    <div className="py-12 text-center">
+                      <Bell className="h-10 w-10 text-gray-100 mx-auto mb-3" />
+                      <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">All caught up!</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-gray-50">
+                      {notifications.map((notif) => (
+                        <div 
+                          key={notif.id} 
+                          className={cn(
+                            "px-5 py-4 hover:bg-gray-50 transition-colors cursor-pointer relative group",
+                            !notif.read && "bg-blue-50/20"
+                          )}
+                          onClick={() => markNotificationAsRead(notif.id)}
+                        >
+                          <div className="flex gap-4">
+                            <div className={cn(
+                              "h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0",
+                              notif.type === 'appointment_reminder' ? "bg-orange-50 text-orange-500" :
+                              notif.type === 'health_alert' ? "bg-rose-50 text-rose-500" :
+                              "bg-blue-50 text-blue-500"
+                            )}>
+                              {notif.type === 'appointment_reminder' ? <Clock className="h-5 w-5" /> : 
+                               notif.type === 'health_alert' ? <Activity className="h-5 w-5" /> :
+                               <Bell className="h-5 w-5" />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                               <p className="text-sm font-bold text-gray-900 mb-1 leading-snug">{notif.title}</p>
+                               <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{notif.message}</p>
+                               <div className="flex items-center justify-between mt-3">
+                                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                    {notif.createdAt?.toDate ? formatDistanceToNow(notif.createdAt.toDate()) + ' ago' : 'Just now'}
+                                  </p>
+                                  {!notif.read && (
+                                    <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                                  )}
+                               </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="px-5 py-4 border-t border-gray-50 bg-gray-50/30">
+                  <button className="w-full text-center text-xs font-black text-blue-600 uppercase tracking-widest hover:underline">
+                    View All Notifications
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* User Profile Dropdown */}
         <div className="relative" ref={dropdownRef}>
@@ -122,6 +226,14 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
                   >
                     <UserIcon className="h-4 w-4" />
                     My Profile
+                  </Link>
+                  <Link 
+                    to="/subscription" 
+                    onClick={() => setIsDropdownOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-600 hover:text-blue-600 hover:bg-blue-50/50 rounded-2xl transition-all"
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    Subscription
                   </Link>
                   <Link 
                     to="/appointments" 

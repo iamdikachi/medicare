@@ -58,24 +58,42 @@ export default function Appointments() {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDayAppointments, setSelectedDayAppointments] = useState<Appointment[] | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+
+  const fetchAppointments = async () => {
+    try {
+      const res = await fetch('/api/appointments', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        setAppointments(data);
+      }
+    } catch (err) {
+      console.error("Fetch error", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
-    const fetchAppointments = async () => {
-      try {
-        const res = await fetch('/api/appointments', { credentials: 'include' });
-        if (res.ok) {
-          const data = await res.json();
-          setAppointments(data);
-        }
-      } catch (err) {
-        console.error("Fetch error", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchAppointments();
   }, [user]);
+
+  const handleCancelAppointment = async (id: string) => {
+    try {
+      const res = await fetch(`/api/appointments/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'cancelled' }),
+      });
+      if (res.ok) {
+        await fetchAppointments();
+        setCancellingId(null);
+      }
+    } catch (err) {
+      console.error("Cancel error", err);
+    }
+  };
 
   const filteredAppointments = useMemo(() => {
     return appointments.filter(app => {
@@ -240,12 +258,21 @@ export default function Appointments() {
                           )}>
                             {app.status}
                           </div>
-                          <Link 
-                            to={`/doctors/${app.doctorId}`}
-                            className="p-3 hover:bg-gray-50 rounded-2xl transition-colors border border-gray-100 shadow-sm"
-                          >
-                            <ChevronRight className="h-5 w-5 text-gray-400" />
-                          </Link>
+                          <div className="flex items-center gap-2">
+                            <button 
+                              onClick={() => setCancellingId(app.id)}
+                              className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all border border-gray-100 shadow-sm"
+                              title="Cancel Appointment"
+                            >
+                              <AlertCircle className="h-5 w-5" />
+                            </button>
+                            <Link 
+                              to={`/doctors/${app.doctorId}`}
+                              className="p-3 hover:bg-gray-50 rounded-2xl transition-colors border border-gray-100 shadow-sm"
+                            >
+                              <ChevronRight className="h-5 w-5 text-gray-400" />
+                            </Link>
+                          </div>
                         </div>
                       </motion.div>
                     ))}
@@ -479,7 +506,12 @@ export default function Appointments() {
                                <p className="text-sm font-medium text-gray-500 mb-4">{app.notes || 'Routine checkup and consultation'}</p>
                                <div className="flex items-center gap-4">
                                   <Link to={`/doctors/${app.doctorId}`} className="text-xs font-black text-blue-600 uppercase tracking-widest hover:underline">View Profile</Link>
-                                  <button className="text-xs font-black text-gray-400 uppercase tracking-widest hover:text-red-500">Cancel</button>
+                                  <button 
+                                    onClick={() => setCancellingId(app.id)}
+                                    className="text-xs font-black text-gray-400 uppercase tracking-widest hover:text-red-500"
+                                  >
+                                    Cancel
+                                  </button>
                                </div>
                             </div>
                           </motion.div>
@@ -548,6 +580,49 @@ export default function Appointments() {
                    >
                      Close Window
                    </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Cancellation Confirmation Modal */}
+        <AnimatePresence>
+          {cancellingId && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-gray-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4"
+              onClick={() => setCancellingId(null)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                className="bg-white w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl p-8 text-center"
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="bg-red-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                  <AlertCircle className="h-10 w-10 text-red-500" />
+                </div>
+                <h3 className="text-2xl font-black text-gray-900 mb-2">Cancel Appointment?</h3>
+                <p className="text-gray-500 font-medium mb-8">
+                  Are you sure you want to cancel this appointment? This action cannot be undone.
+                </p>
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={() => handleCancelAppointment(cancellingId)}
+                    className="w-full py-4 bg-red-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-red-700 transition-all active:scale-95 shadow-xl shadow-red-100"
+                  >
+                    Confirm Cancellation
+                  </button>
+                  <button
+                    onClick={() => setCancellingId(null)}
+                    className="w-full py-4 bg-gray-50 text-gray-500 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-gray-100 transition-all active:scale-95"
+                  >
+                    Go Back
+                  </button>
                 </div>
               </motion.div>
             </motion.div>

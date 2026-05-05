@@ -15,6 +15,12 @@ interface AuthContextType {
     bloodType?: string;
     allergies?: string;
     chronicConditions?: string;
+    reminderPreferences?: {
+      email: boolean;
+      inApp: boolean;
+      remind24h: boolean;
+      remind1h: boolean;
+    };
   }) => Promise<void>;
   logout: () => Promise<void>;
 }
