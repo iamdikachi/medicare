@@ -20,6 +20,7 @@ export default function Profile() {
   const [bloodType, setBloodType] = useState(user?.bloodType || '');
   const [allergies, setAllergies] = useState(user?.allergies || '');
   const [chronicConditions, setChronicConditions] = useState(user?.chronicConditions || '');
+  const [role, setRole] = useState(user?.role || 'patient');
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -51,7 +52,7 @@ export default function Profile() {
 
     try {
       await updateProfile({ 
-        displayName, photoURL, subscriptionTier,
+        displayName, photoURL, subscriptionTier, role,
         emergencyContact, bloodType, allergies, chronicConditions,
         reminderPreferences
       });
@@ -142,6 +143,31 @@ export default function Profile() {
                     </div>
                   </div>
                   <div className="space-y-2">
+                    <label className="text-sm font-bold text-gray-700 ml-1">Account Category</label>
+                    <div className="flex p-1 bg-gray-100 rounded-2xl border border-gray-200">
+                       <button
+                         type="button"
+                         onClick={() => setRole('patient')}
+                         className={cn(
+                           "flex-1 px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
+                           role === 'patient' ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                         )}
+                       >
+                         Patient
+                       </button>
+                       <button
+                         type="button"
+                         onClick={() => setRole('doctor')}
+                         className={cn(
+                           "flex-1 px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2",
+                           role === 'doctor' ? "bg-white text-emerald-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                         )}
+                       >
+                         <Shield className="h-3 w-3" /> Practitioner
+                       </button>
+                    </div>
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
                     <label className="text-sm font-bold text-gray-700 ml-1">Profile Photo URL</label>
                     <div className="relative">
                       <Camera className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -157,77 +183,81 @@ export default function Profile() {
                 </div>
               </section>
 
-              <section>
-                <div className="flex items-center gap-3 mb-8">
-                  <div className="bg-rose-50 p-2 rounded-xl">
-                    <Shield className="h-5 w-5 text-rose-600" />
-                  </div>
-                  <h2 className="text-xl font-bold text-gray-900 uppercase tracking-tight">Medical Information</h2>
-                </div>
+              {role === 'patient' && (
+                <>
+                  <section>
+                    <div className="flex items-center gap-3 mb-8">
+                      <div className="bg-rose-50 p-2 rounded-xl">
+                        <Shield className="h-5 w-5 text-rose-600" />
+                      </div>
+                      <h2 className="text-xl font-bold text-gray-900 uppercase tracking-tight">Medical Information</h2>
+                    </div>
 
-                <div className="grid md:grid-cols-2 gap-8">
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-gray-700 ml-1">Emergency Contact</label>
-                    <div className="relative">
-                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                      <input
-                        type="text"
-                        value={emergencyContact}
-                        onChange={(e) => setEmergencyContact(e.target.value)}
-                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900"
-                        placeholder="Name or Phone number"
-                      />
+                    <div className="grid md:grid-cols-2 gap-8">
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-700 ml-1">Emergency Contact</label>
+                        <div className="relative">
+                          <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                          <input
+                            type="text"
+                            value={emergencyContact}
+                            onChange={(e) => setEmergencyContact(e.target.value)}
+                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900"
+                            placeholder="Name or Phone number"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-700 ml-1">Blood Type</label>
+                        <div className="relative">
+                          <Droplet className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                          <select
+                            value={bloodType}
+                            onChange={(e) => setBloodType(e.target.value)}
+                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900 appearance-none"
+                          >
+                            <option value="">Select Blood Type</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-700 ml-1">Allergies</label>
+                        <div className="relative">
+                          <Thermometer className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                          <input
+                            type="text"
+                            value={allergies}
+                            onChange={(e) => setAllergies(e.target.value)}
+                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900"
+                            placeholder="e.g. Peanuts, Penicillin"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-700 ml-1">Chronic Conditions</label>
+                        <div className="relative">
+                          <Activity className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                          <input
+                            type="text"
+                            value={chronicConditions}
+                            onChange={(e) => setChronicConditions(e.target.value)}
+                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900"
+                            placeholder="e.g. Diabetes, Hypertension"
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-gray-700 ml-1">Blood Type</label>
-                    <div className="relative">
-                      <Droplet className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                      <select
-                        value={bloodType}
-                        onChange={(e) => setBloodType(e.target.value)}
-                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900 appearance-none"
-                      >
-                        <option value="">Select Blood Type</option>
-                        <option value="A+">A+</option>
-                        <option value="A-">A-</option>
-                        <option value="B+">B+</option>
-                        <option value="B-">B-</option>
-                        <option value="AB+">AB+</option>
-                        <option value="AB-">AB-</option>
-                        <option value="O+">O+</option>
-                        <option value="O-">O-</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-gray-700 ml-1">Allergies</label>
-                    <div className="relative">
-                      <Thermometer className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                      <input
-                        type="text"
-                        value={allergies}
-                        onChange={(e) => setAllergies(e.target.value)}
-                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900"
-                        placeholder="e.g. Peanuts, Penicillin"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-gray-700 ml-1">Chronic Conditions</label>
-                    <div className="relative">
-                      <Activity className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                      <input
-                        type="text"
-                        value={chronicConditions}
-                        onChange={(e) => setChronicConditions(e.target.value)}
-                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900"
-                        placeholder="e.g. Diabetes, Hypertension"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </section>
+                  </section>
+                </>
+              )}
 
               <section>
                 <div className="flex items-center gap-3 mb-8">
@@ -298,46 +328,48 @@ export default function Profile() {
                 </div>
               </section>
 
-              <section>
-                <div className="flex items-center justify-between mb-8">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-purple-50 p-2 rounded-xl">
-                      <CreditCard className="h-5 w-5 text-purple-600" />
+              {role === 'patient' && (
+                <section>
+                  <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-purple-50 p-2 rounded-xl">
+                        <CreditCard className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <h2 className="text-xl font-bold text-gray-900 uppercase tracking-tight">Subscription Plan</h2>
                     </div>
-                    <h2 className="text-xl font-bold text-gray-900 uppercase tracking-tight">Subscription Plan</h2>
+                    <Link 
+                      to="/subscription" 
+                      className="text-xs font-black text-blue-600 uppercase tracking-widest flex items-center gap-2 hover:underline"
+                    >
+                      Manage Plan
+                      <ExternalLink className="h-3 w-3" />
+                    </Link>
                   </div>
-                  <Link 
-                    to="/subscription" 
-                    className="text-xs font-black text-blue-600 uppercase tracking-widest flex items-center gap-2 hover:underline"
-                  >
-                    Manage Plan
-                    <ExternalLink className="h-3 w-3" />
-                  </Link>
-                </div>
 
-                <div className="bg-gray-50 rounded-[2.5rem] p-8 border border-gray-100 flex items-center justify-between group hover:bg-gray-100/50 transition-all">
-                  <div className="flex items-center gap-6">
-                    <div className={cn(
-                      "h-16 w-16 rounded-2xl flex items-center justify-center shadow-sm",
-                      user?.subscriptionTier === 'free' ? "bg-white text-gray-400" : "bg-blue-600 text-white"
-                    )}>
-                      {user?.subscriptionTier === 'premium' ? <Shield className="h-8 w-8" /> : 
-                       user?.subscriptionTier === 'basic' ? <Activity className="h-8 w-8" /> :
-                       <User className="h-8 w-8" />}
+                  <div className="bg-gray-50 rounded-[2.5rem] p-8 border border-gray-100 flex items-center justify-between group hover:bg-gray-100/50 transition-all">
+                    <div className="flex items-center gap-6">
+                      <div className={cn(
+                        "h-16 w-16 rounded-2xl flex items-center justify-center shadow-sm",
+                        user?.subscriptionTier === 'free' ? "bg-white text-gray-400" : "bg-blue-600 text-white"
+                      )}>
+                        {user?.subscriptionTier === 'premium' ? <Shield className="h-8 w-8" /> : 
+                         user?.subscriptionTier === 'basic' ? <Activity className="h-8 w-8" /> :
+                         <User className="h-8 w-8" />}
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Active Plan</p>
+                        <h3 className="text-xl font-black text-gray-900 capitalize">{user?.subscriptionTier} Member</h3>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Active Plan</p>
-                      <h3 className="text-xl font-black text-gray-900 capitalize">{user?.subscriptionTier} Member</h3>
-                    </div>
+                    <Link 
+                      to="/subscription" 
+                      className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center border border-gray-200 shadow-sm group-hover:border-blue-200 group-hover:text-blue-600 transition-all"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </Link>
                   </div>
-                  <Link 
-                    to="/subscription" 
-                    className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center border border-gray-200 shadow-sm group-hover:border-blue-200 group-hover:text-blue-600 transition-all"
-                  >
-                    <ChevronRight className="h-5 w-5" />
-                  </Link>
-                </div>
-              </section>
+                </section>
+              )}
 
               <div className="pt-8 border-t border-gray-100 flex items-center justify-between">
                 <p className="text-sm text-gray-400 font-medium">Last updated: {new Date(user?.createdAt).toLocaleDateString()}</p>

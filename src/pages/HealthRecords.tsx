@@ -1,17 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { motion, AnimatePresence } from 'motion/react';
-import { Clipboard, Plus, Search, FileText, Calendar, Filter, X, Check, Save } from 'lucide-react';
+import { Clipboard, Plus, Search, FileText, Calendar, Filter, X, Check, Save, Upload, Paperclip, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '../lib/utils';
 import React from 'react';
 
 export default function HealthRecords() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const isDoctor = profile?.role === 'doctor';
 
   // Form state
   const [title, setTitle] = useState('');
@@ -19,9 +20,11 @@ export default function HealthRecords() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [content, setContent] = useState('');
   const [attachmentUrl, setAttachmentUrl] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || profile === undefined) return;
 
     const fetchRecords = async () => {
       try {
@@ -38,7 +41,7 @@ export default function HealthRecords() {
     };
 
     fetchRecords();
-  }, [user]);
+  }, [user, profile]);
 
   const handleAddRecord = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,6 +73,34 @@ export default function HealthRecords() {
     }
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('document', file);
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAttachmentUrl(data.url);
+      } else {
+        alert('Failed to upload document');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Error uploading document');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const filteredRecords = records.filter(r => 
     r.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     r.type.toLowerCase().includes(searchTerm.toLowerCase())
@@ -80,8 +111,12 @@ export default function HealthRecords() {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
-            <h1 className="text-4xl font-sans font-bold text-gray-900 mb-2">Medical History</h1>
-            <p className="text-gray-600 font-medium">Keep track of your health journey and important documents.</p>
+            <h1 className="text-4xl font-sans font-bold text-gray-900 mb-2">
+              {isDoctor ? 'Patient Database' : 'Medical History'}
+            </h1>
+            <p className="text-gray-600 font-medium">
+              {isDoctor ? 'Access patient clinical records and diagnostic history.' : 'Keep track of your health journey and important documents.'}
+            </p>
           </div>
           
           <div className="flex items-center gap-3">
@@ -89,18 +124,20 @@ export default function HealthRecords() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search records..."
+                placeholder={isDoctor ? "Search name or ID..." : "Search records..."}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all shadow-sm"
               />
             </div>
-            <button 
-              onClick={() => setIsAdding(true)}
-              className="bg-gray-900 text-white px-6 py-3 rounded-2xl font-bold text-sm hover:bg-gray-800 transition-all shadow-xl shadow-gray-100 flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" /> Add Record
-            </button>
+            {!isDoctor && (
+              <button 
+                onClick={() => setIsAdding(true)}
+                className="bg-gray-900 text-white px-6 py-3 rounded-2xl font-bold text-sm hover:bg-gray-800 transition-all shadow-xl shadow-gray-100 flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" /> Add Record
+              </button>
+            )}
           </div>
         </div>
 
@@ -141,14 +178,46 @@ export default function HealthRecords() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-bold text-gray-700 ml-1">Attachment URL (Optional)</label>
-                        <input
-                          type="text"
-                          value={attachmentUrl}
-                          onChange={(e) => setAttachmentUrl(e.target.value)}
-                          placeholder="Link to PDF or Image"
-                          className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900"
-                        />
+                        <label className="text-sm font-bold text-gray-700 ml-1">Prescription / Document</label>
+                        <div className="relative">
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileUpload}
+                            accept=".pdf,image/*"
+                            className="hidden"
+                          />
+                          <div className={cn(
+                            "w-full px-5 py-3.5 bg-gray-50 border border-dashed rounded-2xl transition-all flex items-center justify-between gap-4",
+                            attachmentUrl ? "border-emerald-200 bg-emerald-50/30" : "border-gray-200 hover:border-blue-300"
+                          )}>
+                            <div className="flex items-center gap-3 overflow-hidden">
+                              {isUploading ? (
+                                <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+                              ) : attachmentUrl ? (
+                                <Check className="h-5 w-5 text-emerald-500" />
+                              ) : (
+                                <Upload className="h-5 w-5 text-gray-400" />
+                              )}
+                              <span className={cn(
+                                "text-sm font-medium truncate",
+                                attachmentUrl ? "text-emerald-700" : "text-gray-500"
+                              )}>
+                                {isUploading ? "Uploading document..." : 
+                                 attachmentUrl ? "Document attached successfully" : 
+                                 "Select PDF or Image"}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => fileInputRef.current?.click()}
+                              disabled={isUploading}
+                              className="px-4 py-2 bg-white text-gray-900 border border-gray-200 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-gray-50 transition-all shadow-sm"
+                            >
+                              {attachmentUrl ? "Change" : "Browse"}
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
@@ -262,8 +331,9 @@ export default function HealthRecords() {
                             href={record.attachmentUrl} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="h-fit px-5 py-2.5 bg-gray-50 text-gray-900 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors uppercase tracking-wider text-center"
+                            className="h-fit px-5 py-2.5 bg-gray-50 text-gray-900 rounded-xl text-sm font-bold hover:bg-gray-100 transition-all uppercase tracking-wider text-center flex items-center gap-2"
                           >
+                            <Paperclip className="h-4 w-4" />
                             View Document
                           </a>
                         )}

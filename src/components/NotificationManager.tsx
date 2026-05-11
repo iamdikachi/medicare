@@ -1,7 +1,5 @@
 import { useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../lib/firebase';
 import { checkAndCreateReminders } from '../services/notificationService';
 
 export default function NotificationManager() {
@@ -12,20 +10,15 @@ export default function NotificationManager() {
 
     const checkReminders = async () => {
       try {
-        // Fetch upcoming appointments
-        const appointmentsQuery = query(
-          collection(db, 'appointments'),
-          where('patientId', '==', user.uid),
-          where('status', '==', 'confirmed')
-        );
+        // Fetch upcoming appointments from our local API instead of Firestore
+        // This is more reliable since local API is the source of truth for appointments
+        const res = await fetch('/api/appointments', { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to fetch appointments');
         
-        const snapshot = await getDocs(appointmentsQuery);
-        const appointments = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
+        const appointments = await res.json();
+        const confirmedAppointments = appointments.filter((app: any) => app.status === 'confirmed');
 
-        await checkAndCreateReminders(user.uid, appointments, profile.reminderPreferences);
+        await checkAndCreateReminders(confirmedAppointments, profile.reminderPreferences);
       } catch (error) {
         console.error('Error checking reminders:', error);
       }

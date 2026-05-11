@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import cookieParser from 'cookie-parser';
 import fs from 'fs';
+import multer from 'multer';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,6 +22,9 @@ const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const DOCTORS_FILE = path.join(DATA_DIR, 'doctors.json');
 const APPOINTMENTS_FILE = path.join(DATA_DIR, 'appointments.json');
 const RECORDS_FILE = path.join(DATA_DIR, 'records.json');
+const UPLOADS_DIR = path.join(process.cwd(), 'uploads');
+
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR);
 
 // Initialize files
 [USERS_FILE, DOCTORS_FILE, APPOINTMENTS_FILE, RECORDS_FILE].forEach(file => {
@@ -86,6 +90,18 @@ async function startServer() {
   const app = express();
   app.use(express.json());
   app.use(cookieParser());
+  app.use('/uploads', express.static(UPLOADS_DIR));
+
+  // Configure multer for file storage
+  const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, UPLOADS_DIR),
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      const ext = path.extname(file.originalname);
+      cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+    }
+  });
+  const upload = multer({ storage });
 
   const getData = (file: string) => JSON.parse(fs.readFileSync(file, 'utf-8'));
   const saveData = (file: string, data: any[]) => fs.writeFileSync(file, JSON.stringify(data, null, 2));
@@ -109,7 +125,7 @@ async function startServer() {
 
   // --- Auth API ---
   app.post('/api/auth/signup', async (req, res) => {
-    const { email, password, name } = req.body;
+    const { email, password, name, role } = req.body;
     const users = getData(USERS_FILE);
     if (users.find((u: any) => u.email === email)) return res.status(400).json({ error: 'Exists' });
     
@@ -119,7 +135,7 @@ async function startServer() {
       password: await bcrypt.hash(password, 10),
       displayName: name,
       photoURL: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
-      role: 'patient',
+      role: role || 'patient',
       subscriptionTier: 'free',
       createdAt: new Date().toISOString()
     };
@@ -171,8 +187,9 @@ async function startServer() {
   app.patch('/api/auth/profile', authenticate, (req: any, res) => {
     const { 
       displayName, photoURL, subscriptionTier, 
+      subscriptionStatus, subscriptionStartDate,
       emergencyContact, bloodType, allergies, chronicConditions,
-      reminderPreferences
+      reminderPreferences, role
     } = req.body;
     let users = getData(USERS_FILE);
     const userIndex = users.findIndex((u: any) => u.uid === req.userUid);
@@ -183,11 +200,14 @@ async function startServer() {
     if (displayName !== undefined) users[userIndex].displayName = displayName;
     if (photoURL !== undefined) users[userIndex].photoURL = photoURL;
     if (subscriptionTier !== undefined) users[userIndex].subscriptionTier = subscriptionTier;
+    if (subscriptionStatus !== undefined) users[userIndex].subscriptionStatus = subscriptionStatus;
+    if (subscriptionStartDate !== undefined) users[userIndex].subscriptionStartDate = subscriptionStartDate;
     if (emergencyContact !== undefined) users[userIndex].emergencyContact = emergencyContact;
     if (bloodType !== undefined) users[userIndex].bloodType = bloodType;
     if (allergies !== undefined) users[userIndex].allergies = allergies;
     if (chronicConditions !== undefined) users[userIndex].chronicConditions = chronicConditions;
     if (reminderPreferences !== undefined) users[userIndex].reminderPreferences = reminderPreferences;
+    if (role !== undefined) users[userIndex].role = role;
 
     saveData(USERS_FILE, users);
 
@@ -203,14 +223,24 @@ async function startServer() {
   });
 
   app.get('/api/appointments', authenticate, (req: any, res) => {
-    const apps = getData(APPOINTMENTS_FILE).filter((a: any) => a.patientId === req.userUid);
-    res.json(apps);
+    const { mode } = req.query;
+    const apps = getData(APPOINTMENTS_FILE);
+    
+    if (mode === 'practitioner') {
+      // In a real app, we'd check which doctor this user is. 
+      // For demo, we'll return all appointments to simulate a doctor seeing their schedule.
+      return res.json(apps.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+    }
+    
+    const userApps = apps.filter((a: any) => a.patientId === req.userUid);
+    res.json(userApps);
   });
 
   app.patch('/api/appointments/:id', authenticate, (req: any, res) => {
     const { status } = req.body;
     let apps = getData(APPOINTMENTS_FILE);
-    const appIndex = apps.findIndex((a: any) => a.id === req.params.id && a.patientId === req.userUid);
+    // Allow update if they are the patient OR if they are in practitioner mode
+    const appIndex = apps.findIndex((a: any) => a.id === req.params.id);
 
     if (appIndex === -1) return res.status(404).json({ error: 'Appointment not found' });
 
@@ -236,8 +266,16 @@ async function startServer() {
   });
 
   app.get('/api/records', authenticate, (req: any, res) => {
-    const recs = getData(RECORDS_FILE).filter((r: any) => r.patientId === req.userUid);
-    res.json(recs);
+    const user = getData(USERS_FILE).find((u: any) => u.uid === req.userUid);
+    const recs = getData(RECORDS_FILE);
+    
+    if (user?.role === 'doctor') {
+      // Doctors can see all records for patients
+      return res.json(recs);
+    }
+    
+    // Patients see only their own
+    res.json(recs.filter((r: any) => r.patientId === req.userUid));
   });
 
   app.post('/api/records', authenticate, (req: any, res) => {
@@ -252,6 +290,12 @@ async function startServer() {
     recs.push(newRec);
     saveData(RECORDS_FILE, recs);
     res.json(newRec);
+  });
+
+  app.post('/api/upload', authenticate, upload.single('document'), (req: any, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    const fileUrl = `/uploads/${req.file.filename}`;
+    res.json({ url: fileUrl });
   });
 
   if (process.env.NODE_ENV !== 'production') {

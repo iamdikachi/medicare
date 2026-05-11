@@ -99,9 +99,12 @@ export default function Appointments() {
   const [selectedDayAppointments, setSelectedDayAppointments] = useState<Appointment[] | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
+  const isDoctor = profile?.role === 'doctor';
+
   const fetchAppointments = async () => {
     try {
-      const res = await fetch('/api/appointments', { credentials: 'include' });
+      const url = isDoctor ? '/api/appointments?mode=practitioner' : '/api/appointments';
+      const res = await fetch(url, { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         setAppointments(data);
@@ -114,9 +117,9 @@ export default function Appointments() {
   };
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || profile === undefined) return;
     fetchAppointments();
-  }, [user]);
+  }, [user, profile]);
 
   const handleCancelAppointment = async (id: string) => {
     try {
@@ -139,6 +142,7 @@ export default function Appointments() {
       const searchString = searchTerm.toLowerCase();
       return (
         (app.docName || '').toLowerCase().includes(searchString) ||
+        (app.patientName || '').toLowerCase().includes(searchString) ||
         (app.specialty || '').toLowerCase().includes(searchString)
       );
     });
@@ -194,8 +198,12 @@ export default function Appointments() {
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 tracking-tight mb-2">My Appointments</h1>
-            <p className="text-gray-500 font-medium tracking-tight">Manage your upcoming and past consultations</p>
+            <h1 className="text-4xl font-bold text-gray-900 tracking-tight mb-2">
+              {isDoctor ? 'Schedule Manager' : 'My Appointments'}
+            </h1>
+            <p className="text-gray-500 font-medium tracking-tight">
+              {isDoctor ? 'Manage patient consultations and your daily agenda' : 'Manage your upcoming and past consultations'}
+            </p>
           </div>
           
           <div className="flex bg-white p-1 rounded-2xl border border-gray-100 shadow-sm">
@@ -221,12 +229,14 @@ export default function Appointments() {
             </button>
           </div>
           
-          <Link 
-            to="/doctors"
-            className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3.5 rounded-2xl font-bold text-sm hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 active:scale-95 whitespace-nowrap"
-          >
-            Book New Consultation
-          </Link>
+          {!isDoctor && (
+            <Link 
+              to="/doctors"
+              className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3.5 rounded-2xl font-bold text-sm hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 active:scale-95 whitespace-nowrap"
+            >
+              Book New Consultation
+            </Link>
+          )}
         </div>
 
         {/* List View */}
@@ -239,7 +249,7 @@ export default function Appointments() {
               </div>
               <input
                 type="text"
-                placeholder="Search by doctor or specialty..."
+                placeholder={isDoctor ? "Search by patient name..." : "Search by doctor or specialty..."}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full bg-white border border-gray-100 pl-16 pr-6 py-5 rounded-[2rem] font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600/10 focus:border-blue-600 transition-all shadow-sm shadow-gray-100"

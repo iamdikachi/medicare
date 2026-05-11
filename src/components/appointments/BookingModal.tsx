@@ -19,13 +19,14 @@ interface BookingModalProps {
   onClose: () => void;
   initialDate?: string;
   initialTime?: string;
+  initialNotes?: string;
 }
 
-export default function BookingModal({ doctor, onClose, initialDate, initialTime }: BookingModalProps) {
+export default function BookingModal({ doctor, onClose, initialDate, initialTime, initialNotes }: BookingModalProps) {
   const { user } = useAuth();
   const [date, setDate] = useState(initialDate || format(new Date(), 'yyyy-MM-dd'));
   const [time, setTime] = useState(initialTime || '');
-  const [notes, setNotes] = useState('');
+  const [notes, setNotes] = useState(initialNotes || '');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
