@@ -13,7 +13,8 @@ import {
   LayoutList,
   CalendarDays,
   ChevronLeft,
-  Info
+  Info,
+  X
 } from 'lucide-react';
 import { 
   format, 
@@ -47,6 +48,44 @@ interface Appointment {
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   notes?: string;
 }
+
+const StatusBadge = ({ status }: { status: Appointment['status'] }) => {
+  const configs = {
+    pending: {
+      color: "bg-orange-50 text-orange-600 border-orange-100",
+      icon: Clock,
+      label: "Pending Approval"
+    },
+    confirmed: {
+      color: "bg-emerald-50 text-emerald-600 border-emerald-100",
+      icon: CheckCircle2,
+      label: "Confirmed"
+    },
+    completed: {
+      color: "bg-blue-50 text-blue-600 border-blue-100",
+      icon: CheckCircle2,
+      label: "Completed"
+    },
+    cancelled: {
+      color: "bg-red-50 text-red-600 border-red-100",
+      icon: AlertCircle,
+      label: "Cancelled"
+    }
+  };
+
+  const config = configs[status] || configs.pending;
+  const Icon = config.icon;
+
+  return (
+    <div className={cn(
+      "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border",
+      config.color
+    )}>
+      <Icon className="h-3 w-3" />
+      {config.label}
+    </div>
+  );
+};
 
 type ViewMode = 'list' | 'month' | 'week' | 'day';
 
@@ -250,21 +289,14 @@ export default function Appointments() {
                           </div>
                         </div>
                         <div className="flex items-center gap-6">
-                          <div className={cn(
-                            "px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest",
-                            app.status === 'confirmed' ? "bg-green-50 text-green-600" :
-                            app.status === 'pending' ? "bg-amber-50 text-amber-600" :
-                            "bg-gray-50 text-gray-400"
-                          )}>
-                            {app.status}
-                          </div>
+                          <StatusBadge status={app.status} />
                           <div className="flex items-center gap-2">
                             <button 
                               onClick={() => setCancellingId(app.id)}
                               className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all border border-gray-100 shadow-sm"
                               title="Cancel Appointment"
                             >
-                              <AlertCircle className="h-5 w-5" />
+                              <X className="h-5 w-5" />
                             </button>
                             <Link 
                               to={`/doctors/${app.doctorId}`}
@@ -315,12 +347,7 @@ export default function Appointments() {
                                 <div className="text-xs text-gray-400 font-medium">{format(parseISO(app.dateTime), 'h:mm a')}</div>
                               </td>
                               <td className="px-8 py-6">
-                                <span className={cn(
-                                  "text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg",
-                                  app.status === 'completed' ? "bg-blue-50 text-blue-600" : "bg-gray-50 text-gray-400"
-                                )}>
-                                  {app.status}
-                                </span>
+                                <StatusBadge status={app.status} />
                               </td>
                               <td className="px-8 py-6 text-right">
                                  <button className="text-blue-600 font-bold text-xs uppercase tracking-widest hover:underline">View Notes</button>
@@ -408,7 +435,7 @@ export default function Appointments() {
                         <div className="space-y-1">
                           {dayAppointments.slice(0, 3).map(app => (
                             <div key={app.id} className="text-[10px] font-bold py-1 px-2 rounded-lg bg-blue-50 text-blue-700 truncate border border-blue-100 shadow-sm">
-                              {format(parseISO(app.dateTime), 'h:mm')} {app.docName}
+                              {format(parseISO(app.dateTime), 'h:mm')} • {app.specialty} • {app.docName}
                             </div>
                           ))}
                           {dayAppointments.length > 3 && (
@@ -497,10 +524,7 @@ export default function Appointments() {
                                   <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-widest">
                                      {app.specialty}
                                   </span>
-                                  <span className={cn(
-                                    "text-[9px] font-black uppercase tracking-widest",
-                                    app.status === 'confirmed' ? "text-emerald-500" : "text-amber-500"
-                                  )}>{app.status}</span>
+                                  <StatusBadge status={app.status} />
                                </div>
                                <h4 className="text-xl font-black text-gray-900 mb-1">{app.docName}</h4>
                                <p className="text-sm font-medium text-gray-500 mb-4">{app.notes || 'Routine checkup and consultation'}</p>
@@ -560,16 +584,33 @@ export default function Appointments() {
                             <Clock className="h-6 w-6 text-blue-600" />
                          </div>
                          <div className="flex-1">
-                            <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">{format(parseISO(app.dateTime), 'h:mm a')}</p>
+                            <div className="flex items-center justify-between mb-1">
+                              <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{format(parseISO(app.dateTime), 'h:mm a')}</p>
+                              <StatusBadge status={app.status} />
+                            </div>
                             <h4 className="font-black text-gray-900 leading-tight">{app.docName}</h4>
                             <p className="text-xs font-medium text-gray-400 uppercase tracking-widest">{app.specialty} Specialist</p>
                          </div>
-                         <Link 
-                            to={`/doctors/${app.doctorId}`}
-                            className="p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"
-                         >
-                            <ChevronRight className="h-4 w-4 text-gray-400" />
-                         </Link>
+                         <div className="flex items-center gap-2">
+                            {new Date(app.dateTime) > new Date() && app.status !== 'cancelled' && (
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setCancellingId(app.id);
+                                }}
+                                className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                                title="Cancel Appointment"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            )}
+                            <Link 
+                               to={`/doctors/${app.doctorId}`}
+                               className="p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"
+                            >
+                               <ChevronRight className="h-4 w-4 text-gray-400" />
+                            </Link>
+                         </div>
                       </div>
                    ))}
                 </div>

@@ -25,6 +25,24 @@ export default function Profile() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  const handlePreferenceToggle = async (key: keyof typeof reminderPreferences) => {
+    const updatedPrefs = {
+      ...reminderPreferences,
+      [key]: !reminderPreferences[key]
+    };
+    setReminderPreferences(updatedPrefs);
+    
+    try {
+      await updateProfile({ reminderPreferences: updatedPrefs });
+      setSuccess('Notification preferences updated successfully!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err: any) {
+      setError(err.message || 'Failed to auto-update notifications');
+      // Revert if error
+      setReminderPreferences(reminderPreferences);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -233,7 +251,7 @@ export default function Profile() {
                         <input 
                           type="checkbox" 
                           checked={reminderPreferences.email}
-                          onChange={(e) => setReminderPreferences({...reminderPreferences, email: e.target.checked})}
+                          onChange={() => handlePreferenceToggle('email')}
                           className="w-5 h-5 rounded-lg border-gray-300 text-blue-600 focus:ring-blue-600 transition-all"
                         />
                       </label>
@@ -247,7 +265,7 @@ export default function Profile() {
                         <input 
                           type="checkbox" 
                           checked={reminderPreferences.inApp}
-                          onChange={(e) => setReminderPreferences({...reminderPreferences, inApp: e.target.checked})}
+                          onChange={() => handlePreferenceToggle('inApp')}
                           className="w-5 h-5 rounded-lg border-gray-300 text-blue-600 focus:ring-blue-600 transition-all"
                         />
                       </label>
@@ -262,7 +280,7 @@ export default function Profile() {
                         <input 
                           type="checkbox" 
                           checked={reminderPreferences.remind24h}
-                          onChange={(e) => setReminderPreferences({...reminderPreferences, remind24h: e.target.checked})}
+                          onChange={() => handlePreferenceToggle('remind24h')}
                           className="w-5 h-5 rounded-lg border-gray-300 text-blue-600 focus:ring-blue-600 transition-all"
                         />
                       </label>
@@ -271,7 +289,7 @@ export default function Profile() {
                         <input 
                           type="checkbox" 
                           checked={reminderPreferences.remind1h}
-                          onChange={(e) => setReminderPreferences({...reminderPreferences, remind1h: e.target.checked})}
+                          onChange={() => handlePreferenceToggle('remind1h')}
                           className="w-5 h-5 rounded-lg border-gray-300 text-blue-600 focus:ring-blue-600 transition-all"
                         />
                       </label>

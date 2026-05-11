@@ -23,6 +23,7 @@ interface CalendarPickerProps {
   selectedTime: string;
   onTimeSelect: (time: string) => void;
   availableSlots: string[];
+  isDateAvailable?: (date: Date) => boolean;
 }
 
 export default function CalendarPicker({ 
@@ -30,7 +31,8 @@ export default function CalendarPicker({
   onDateSelect, 
   selectedTime, 
   onTimeSelect,
-  availableSlots 
+  availableSlots,
+  isDateAvailable
 }: CalendarPickerProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [direction, setDirection] = useState(0);
@@ -111,6 +113,7 @@ export default function CalendarPicker({
         const cloneDay = day;
         const isDisabled = !isSameMonth(day, monthStart) || isBefore(day, today);
         const isSelected = isSameDay(day, new Date(selectedDate || today));
+        const hasSlots = !isDisabled && isDateAvailable?.(day);
 
         days.push(
           <button
@@ -121,10 +124,14 @@ export default function CalendarPicker({
             className={cn(
               "h-12 w-full flex items-center justify-center rounded-2xl text-sm font-bold transition-all relative group",
               isDisabled ? "text-gray-300 cursor-not-allowed" : "text-gray-700 hover:bg-blue-50",
-              isSelected && !isDisabled ? "bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-100 scale-105 z-10" : ""
+              isSelected && !isDisabled ? "bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-100 scale-105 z-10" : 
+              hasSlots ? "bg-emerald-50 text-emerald-700 ring-2 ring-transparent hover:ring-emerald-200" : ""
             )}
           >
             <span>{format(day, 'd')}</span>
+            {hasSlots && !isSelected && (
+              <div className="absolute top-2 right-2 w-1 h-1 bg-emerald-500 rounded-full" />
+            )}
             {isSameDay(day, today) && !isSelected && (
               <div className="absolute bottom-2 w-1.5 h-1.5 bg-blue-600 rounded-full" />
             )}

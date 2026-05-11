@@ -10,7 +10,8 @@ import {
   Calendar, 
   MessageSquare, 
   ShieldCheck,
-  Stethoscope
+  Stethoscope,
+  Info
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import BookingModal from '../components/appointments/BookingModal';
@@ -58,6 +59,15 @@ export default function DoctorProfile() {
   };
 
   const currentSlots = getDynamicSlots(selectedDate);
+  const isDateAvailable = (date: Date) => {
+    const day = date.getDay();
+    // Simulate that weekends have no availability for this specific view if needed, 
+    // or just that they have FEWER slots but still have some.
+    // For visual highlighting, let's say weekdays have "good" availability.
+    return day !== 0 && day !== 6; 
+  };
+
+  const canBook = selectedDate && selectedTime;
 
   useEffect(() => {
     async function fetchDoctor() {
@@ -175,7 +185,7 @@ export default function DoctorProfile() {
               </div>
             </motion.div>
 
-            <section className="bg-white rounded-[3rem] p-10 shadow-sm border border-gray-100 overflow-hidden relative">
+            <section id="availability-section" className="bg-white rounded-[3rem] p-10 shadow-sm border border-gray-100 overflow-hidden relative">
               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 blur-3xl opacity-50" />
               
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
@@ -196,20 +206,20 @@ export default function DoctorProfile() {
                 )}
               </div>
               
-              <CalendarPicker
-                selectedDate={selectedDate}
-                onDateSelect={(date) => {
-                  setSelectedDate(date);
-                  setSelectedTime('');
-                }}
-                selectedTime={selectedTime}
-                onTimeSelect={(time) => {
-                  setSelectedTime(time);
-                  setIsBooking(true);
-                }}
-                availableSlots={currentSlots}
-              />
-            </section>
+                <CalendarPicker
+                  selectedDate={selectedDate}
+                  onDateSelect={(date) => {
+                    setSelectedDate(date);
+                    setSelectedTime('');
+                  }}
+                  selectedTime={selectedTime}
+                  onTimeSelect={(time) => {
+                    setSelectedTime(time);
+                  }}
+                  availableSlots={currentSlots}
+                  isDateAvailable={isDateAvailable}
+                />
+              </section>
 
             {/* Detailed sections */}
             <div className="grid md:grid-cols-2 gap-8">
@@ -275,21 +285,38 @@ export default function DoctorProfile() {
                       <span className="text-gray-400 font-medium">Consultation Fee</span>
                       <span className="text-2xl font-sans font-bold">${doctor.consultationFee}</span>
                    </div>
-                   <div className="flex items-center gap-4 text-blue-200">
-                      <Calendar className="h-5 w-5" />
-                      <span className="text-sm font-medium">Available Mon - Fri, 9am - 5pm</span>
-                   </div>
-                   <div className="flex items-center gap-4 text-blue-200">
-                      <Clock className="h-5 w-5" />
-                      <span className="text-sm font-medium">Approx. 45 min per session</span>
-                   </div>
+                   {selectedDate && (
+                     <div className="flex items-center gap-4 text-blue-200">
+                        <Calendar className="h-5 w-5" />
+                        <span className="text-sm font-medium">{format(new Date(selectedDate), 'EEE, MMM d, yyyy')}</span>
+                     </div>
+                   )}
+                   {selectedTime && (
+                     <div className="flex items-center gap-4 text-emerald-400">
+                        <Clock className="h-5 w-5" />
+                        <span className="text-sm font-black uppercase tracking-widest">{selectedTime}</span>
+                     </div>
+                   )}
+                   {!selectedTime && (
+                      <div className="bg-white/5 p-4 rounded-2xl flex items-center gap-3">
+                         <Info className="h-5 w-5 text-blue-400" />
+                         <p className="text-xs text-blue-100/70 font-medium leading-relaxed">
+                           Please select a preferred date and time from the availability calendar to proceed.
+                         </p>
+                      </div>
+                   )}
                  </div>
 
                  <button
-                   onClick={() => setIsBooking(true)}
-                   className="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold text-lg hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/10 active:scale-95 flex items-center justify-center gap-2"
+                   onClick={() => canBook ? setIsBooking(true) : document.getElementById('availability-section')?.scrollIntoView({ behavior: 'smooth' })}
+                   className={cn(
+                     "w-full py-5 rounded-2xl font-bold text-lg transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2",
+                     canBook 
+                       ? "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-500/10" 
+                       : "bg-white/10 text-gray-400 cursor-pointer hover:bg-white/15"
+                   )}
                  >
-                   Schedule Consultation
+                   {canBook ? 'Schedule Consultation' : 'Select Time to Book'}
                  </button>
                  
                  <p className="mt-6 text-center text-xs text-gray-400 font-medium">

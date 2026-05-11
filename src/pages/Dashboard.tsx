@@ -110,10 +110,12 @@ export default function Dashboard() {
                           <span className="text-lg font-bold text-gray-900 leading-none">{format(new Date(app.dateTime), 'dd')}</span>
                         </div>
                         <div>
-                          <div className="text-lg font-bold text-gray-900 tracking-tight mb-0.5">Consultation</div>
-                          <div className="flex items-center gap-3 text-sm text-gray-500 font-medium">
+                          <div className="text-lg font-bold text-gray-900 tracking-tight mb-0.5">{app.docName || 'Consultation'}</div>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-sm text-gray-500 font-medium">
+                            <span className="flex items-center gap-1 text-blue-600 font-bold">{app.specialty}</span>
+                            <span className="hidden sm:block w-1.5 h-1.5 bg-gray-300 rounded-full" />
                             <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {format(new Date(app.dateTime), 'hh:mm a')}</span>
-                            <span className="w-1.5 h-1.5 bg-gray-300 rounded-full" />
+                            <span className="hidden sm:block w-1.5 h-1.5 bg-gray-300 rounded-full" />
                             <span className="capitalize">{app.status}</span>
                           </div>
                         </div>
