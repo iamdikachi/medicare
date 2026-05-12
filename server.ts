@@ -270,8 +270,12 @@ async function startServer() {
     const recs = getData(RECORDS_FILE);
     
     if (user?.role === 'doctor') {
-      // Doctors can see all records for patients
-      return res.json(recs);
+      const users = getData(USERS_FILE);
+      const enhancedRecs = recs.map((r: any) => {
+        const patient = users.find((u: any) => u.uid === r.patientId);
+        return { ...r, patientName: patient?.displayName || 'Unknown Patient' };
+      });
+      return res.json(enhancedRecs);
     }
     
     // Patients see only their own

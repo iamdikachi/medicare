@@ -90,7 +90,7 @@ const StatusBadge = ({ status }: { status: Appointment['status'] }) => {
 type ViewMode = 'list' | 'month' | 'week' | 'day';
 
 export default function Appointments() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -269,8 +269,8 @@ export default function Appointments() {
                 {upcoming.length === 0 ? (
                   <div className="bg-white rounded-3xl p-12 text-center border border-dashed border-gray-200">
                     <CalendarIcon className="h-12 w-12 text-gray-200 mx-auto mb-4" />
-                    <p className="text-gray-400 font-medium mb-6">No upcoming appointments scheduled.</p>
-                    <Link to="/doctors" className="text-blue-600 font-bold hover:underline">Find a doctor now</Link>
+                    <p className="text-gray-400 font-medium mb-6">No upcoming consultations scheduled.</p>
+                    {!isDoctor && <Link to="/doctors" className="text-blue-600 font-bold hover:underline">Find a doctor now</Link>}
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -286,7 +286,9 @@ export default function Appointments() {
                             <Stethoscope className="h-3.5 w-3.5" />
                             {app.specialty || 'General Consultation'}
                           </div>
-                          <h3 className="text-xl font-bold text-gray-900 mb-1">{app.docName || 'Specialist Doctor'}</h3>
+                          <h3 className="text-xl font-bold text-gray-900 mb-1">
+                            {isDoctor ? (app.patientName || 'Anonymous Patient') : (app.docName || 'Specialist Doctor')}
+                          </h3>
                           <div className="flex flex-wrap gap-4 text-sm font-medium text-gray-500 mt-3">
                             <div className="flex items-center gap-2">
                               <CalendarIcon className="h-4 w-4 text-gray-400" />
@@ -308,12 +310,14 @@ export default function Appointments() {
                             >
                               <X className="h-5 w-5" />
                             </button>
-                            <Link 
-                              to={`/doctors/${app.doctorId}`}
-                              className="p-3 hover:bg-gray-50 rounded-2xl transition-colors border border-gray-100 shadow-sm"
-                            >
-                              <ChevronRight className="h-5 w-5 text-gray-400" />
-                            </Link>
+                            {!isDoctor && (
+                              <Link 
+                                to={`/doctors/${app.doctorId}`}
+                                className="p-3 hover:bg-gray-50 rounded-2xl transition-colors border border-gray-100 shadow-sm"
+                              >
+                                <ChevronRight className="h-5 w-5 text-gray-400" />
+                              </Link>
+                            )}
                           </div>
                         </div>
                       </motion.div>
@@ -339,7 +343,9 @@ export default function Appointments() {
                       <table className="w-full text-left">
                         <thead>
                           <tr className="bg-gray-50 border-b border-gray-100">
-                            <th className="px-8 py-5 text-xs font-bold text-gray-400 uppercase tracking-widest">Doctor</th>
+                            <th className="px-8 py-5 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                              {isDoctor ? 'Patient' : 'Doctor'}
+                            </th>
                             <th className="px-8 py-5 text-xs font-bold text-gray-400 uppercase tracking-widest">Date & Time</th>
                             <th className="px-8 py-5 text-xs font-bold text-gray-400 uppercase tracking-widest">Status</th>
                             <th className="px-8 py-5 text-xs font-bold text-gray-400 uppercase tracking-widest text-right">Action</th>
@@ -349,7 +355,7 @@ export default function Appointments() {
                           {past.map((app) => (
                             <tr key={app.id} className="hover:bg-gray-50/50 transition-colors">
                               <td className="px-8 py-6">
-                                <div className="font-bold text-gray-900">{app.docName || 'Doctor'}</div>
+                                <div className="font-bold text-gray-900">{isDoctor ? (app.patientName || 'Patient') : (app.docName || 'Doctor')}</div>
                                 <div className="text-xs text-gray-400 font-medium">{app.specialty}</div>
                               </td>
                               <td className="px-8 py-6">
@@ -445,7 +451,7 @@ export default function Appointments() {
                         <div className="space-y-1">
                           {dayAppointments.slice(0, 3).map(app => (
                             <div key={app.id} className="text-[10px] font-bold py-1 px-2 rounded-lg bg-blue-50 text-blue-700 truncate border border-blue-100 shadow-sm">
-                              {format(parseISO(app.dateTime), 'h:mm')} • {app.specialty} • {app.docName}
+                              {format(parseISO(app.dateTime), 'h:mm')} • {isDoctor ? app.patientName : app.docName}
                             </div>
                           ))}
                           {dayAppointments.length > 3 && (
@@ -486,7 +492,7 @@ export default function Appointments() {
                               <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">
                                 {format(parseISO(app.dateTime), 'h:mm a')}
                               </p>
-                              <p className="text-xs font-bold text-gray-900 truncate mb-1">{app.docName}</p>
+                              <p className="text-xs font-bold text-gray-900 truncate mb-1">{isDoctor ? app.patientName : app.docName}</p>
                               <p className="text-[9px] font-medium text-gray-400 truncate uppercase">{app.specialty}</p>
                             </motion.div>
                           ))}
@@ -536,10 +542,10 @@ export default function Appointments() {
                                   </span>
                                   <StatusBadge status={app.status} />
                                </div>
-                               <h4 className="text-xl font-black text-gray-900 mb-1">{app.docName}</h4>
+                               <h4 className="text-xl font-black text-gray-900 mb-1">{isDoctor ? app.patientName : app.docName}</h4>
                                <p className="text-sm font-medium text-gray-500 mb-4">{app.notes || 'Routine checkup and consultation'}</p>
                                <div className="flex items-center gap-4">
-                                  <Link to={`/doctors/${app.doctorId}`} className="text-xs font-black text-blue-600 uppercase tracking-widest hover:underline">View Profile</Link>
+                                  {!isDoctor && <Link to={`/doctors/${app.doctorId}`} className="text-xs font-black text-blue-600 uppercase tracking-widest hover:underline">View Profile</Link>}
                                   <button 
                                     onClick={() => setCancellingId(app.id)}
                                     className="text-xs font-black text-gray-400 uppercase tracking-widest hover:text-red-500"
@@ -598,7 +604,7 @@ export default function Appointments() {
                               <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{format(parseISO(app.dateTime), 'h:mm a')}</p>
                               <StatusBadge status={app.status} />
                             </div>
-                            <h4 className="font-black text-gray-900 leading-tight">{app.docName}</h4>
+                            <h4 className="font-black text-gray-900 leading-tight">{isDoctor ? app.patientName : app.docName}</h4>
                             <p className="text-xs font-medium text-gray-400 uppercase tracking-widest">{app.specialty} Specialist</p>
                          </div>
                          <div className="flex items-center gap-2">
@@ -614,12 +620,14 @@ export default function Appointments() {
                                 <X className="h-4 w-4" />
                               </button>
                             )}
-                            <Link 
-                               to={`/doctors/${app.doctorId}`}
-                               className="p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"
-                            >
-                               <ChevronRight className="h-4 w-4 text-gray-400" />
-                            </Link>
+                            {!isDoctor && (
+                              <Link 
+                                to={`/doctors/${app.doctorId}`}
+                                className="p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"
+                              >
+                                <ChevronRight className="h-4 w-4 text-gray-400" />
+                              </Link>
+                            )}
                          </div>
                       </div>
                    ))}

@@ -277,14 +277,22 @@ export default function HealthRecords() {
                 <div className="bg-gray-50 p-6 rounded-full mb-6">
                   <Clipboard className="h-12 w-12 text-gray-200" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">No Records Found</h3>
-                <p className="text-gray-500 max-w-sm mb-10">Start building your medical history by adding your first record or document.</p>
-                <button 
-                  onClick={() => setIsAdding(true)}
-                   className="bg-white text-gray-900 border-2 border-gray-100 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-gray-50 transition-all"
-                >
-                  Create First Record
-                </button>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                  {isDoctor ? 'No Patient Records FOUND' : 'No Records Found'}
+                </h3>
+                <p className="text-gray-500 max-w-sm mb-10">
+                  {isDoctor 
+                    ? 'There are currently no clinical records matching your criteria in the system.' 
+                    : 'Start building your medical history by adding your first record or document.'}
+                </p>
+                {!isDoctor && (
+                  <button 
+                    onClick={() => setIsAdding(true)}
+                    className="bg-white text-gray-900 border-2 border-gray-100 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-gray-50 transition-all"
+                  >
+                    Create First Record
+                  </button>
+                )}
               </div>
             ) : (
               <div className="space-y-6">
@@ -310,6 +318,11 @@ export default function HealthRecords() {
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                         <div>
                            <div className="flex items-center gap-3 mb-2">
+                             {isDoctor && (
+                               <span className="text-[10px] font-black uppercase tracking-[0.2em] px-2 py-1 bg-gray-900 text-white rounded-lg">
+                                 Patient: {record.patientName}
+                               </span>
+                             )}
                              <span className={cn(
                                "text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg",
                                record.type === 'diagnosis' ? 'bg-rose-100 text-rose-700' :

@@ -5,11 +5,31 @@ import { useAuth } from '../contexts/AuthContext';
 import { cn } from '../lib/utils';
 
 export default function Messages() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [activeChat, setActiveChat] = useState(0);
   const [message, setMessage] = useState('');
+  const isDoctor = profile?.role === 'doctor';
 
-  const chats = [
+  const chats = isDoctor ? [
+    {
+      id: 0,
+      name: 'John Doe (Patient)',
+      lastMessage: 'Thank you for the prescription, doctor.',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=100',
+      time: '02:15 PM',
+      online: true,
+      unread: 1,
+    },
+    {
+      id: 1,
+      name: 'Jane Smith (Patient)',
+      lastMessage: 'When should I take the next dose?',
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100',
+      time: '10:30 AM',
+      online: false,
+      unread: 0,
+    }
+  ] : [
     {
       id: 0,
       name: 'Dr. Sarah Wilson',
@@ -30,7 +50,11 @@ export default function Messages() {
     }
   ];
 
-  const messages = [
+  const messages = isDoctor ? [
+    { senderId: 'patient1', term: 'Hello Dr., I have a question about my medication.', time: '02:00 PM' },
+    { senderId: 'me', term: 'Hello John, please go ahead.', time: '02:05 PM' },
+    { senderId: 'patient1', term: 'Thank you for the prescription, doctor. Does it have side effects?', time: '02:15 PM' },
+  ] : [
     { senderId: 'doc1', term: 'Hello, how are you feeling today?', time: '10:00 AM' },
     { senderId: 'me', term: 'Feeling much better, thank you doctor.', time: '10:15 AM' },
     { senderId: 'doc1', term: 'Great! Your recent blood test results are ready.', time: '10:20 AM' },

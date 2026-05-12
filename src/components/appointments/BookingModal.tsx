@@ -55,6 +55,7 @@ export default function BookingModal({ doctor, onClose, initialDate, initialTime
           doctorId: doctor.id,
           dateTime: new Date(`${date}T${time}`).toISOString(),
           docName: doctor.name,
+          patientName: user.displayName,
           specialty: doctor.specialty,
           status: 'pending',
           notes,
