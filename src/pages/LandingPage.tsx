@@ -284,7 +284,7 @@ export default function LandingPage() {
           </div>
           <div className="pt-10 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-8">
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-              © 2026 MediCare Healthcare. All rights reserved.
+              © 2026 MediCare Healthcare. All rights reserved. Developed by Ugama Chidozie Daniel
             </p>
             <div className="flex items-center gap-8 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all">
               <div className="flex items-center gap-2">

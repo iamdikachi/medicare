@@ -1,0 +1,32 @@
+[
+  {
+    "uid": "tpl14",
+    "email": "Scuib.com@gmail.com",
+    "password": "$2b$10$5O4xKts3a5AflI8qeXcvoOLRxAoGOXgvQJkru9m4C7iR.J/nShBWO",
+    "displayName": "sfsdf",
+    "photoURL": "https://api.dicebear.com/7.x/avataaars/svg?seed=Scuib.com@gmail.com",
+    "role": "patient",
+    "subscriptionTier": "free",
+    "createdAt": "2026-05-08T10:01:41.170Z",
+    "emergencyContact": "",
+    "bloodType": "",
+    "allergies": "",
+    "chronicConditions": "",
+    "reminderPreferences": {
+      "email": true,
+      "inApp": true,
+      "remind24h": true,
+      "remind1h": true
+    }
+  },
+  {
+    "uid": "8mn4e",
+    "email": "doneonyi920@gmail.com",
+    "password": "$2b$10$yt/5evlDQUJPwTDkLqWVregsxIY2F/eY6bBFgX5lPr/Qof.IkMgeq",
+    "displayName": "Emmanuel Nnadi",
+    "photoURL": "https://api.dicebear.com/7.x/avataaars/svg?seed=doneonyi920@gmail.com",
+    "role": "patient",
+    "subscriptionTier": "free",
+    "createdAt": "2026-05-11T15:58:28.456Z"
+  }
+]

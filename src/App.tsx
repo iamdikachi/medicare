@@ -17,6 +17,7 @@ import HowItWorks from './pages/HowItWorks';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Subscription from './pages/Subscription';
+import Support from './pages/Support';
 import { useLocation } from 'react-router-dom';
 import { cn } from './lib/utils';
 import NotificationManager from './components/NotificationManager';
@@ -74,6 +75,7 @@ function AppRoutes() {
             <Route path="/appointments" element={user ? <Appointments /> : <Navigate to="/login" />} />
             <Route path="/records" element={user ? <HealthRecords /> : <Navigate to="/login" />} />
             <Route path="/subscription" element={user ? <Subscription /> : <Navigate to="/login" />} />
+            <Route path="/support" element={user ? <Support /> : <Navigate to="/login" />} />
           </Routes>
         </main>
       </div>

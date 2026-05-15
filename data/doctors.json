@@ -1,0 +1,66 @@
+[
+  {
+    "id": "doc1",
+    "name": "Dr. Sarah Wilson",
+    "specialty": "Cardiology",
+    "bio": "Specialist in cardiovascular diseases with 10+ years of experience. Sarah focuses on preventive care and heart health optimization.",
+    "rating": 4.9,
+    "experienceYears": 12,
+    "consultationFee": 50,
+    "photoURL": "https://images.unsplash.com/photo-1559839734-2b71f1e3c77e?auto=format&fit=crop&q=80&w=400",
+    "availableSlots": [
+      "09:00",
+      "10:30",
+      "14:00",
+      "16:30"
+    ]
+  },
+  {
+    "id": "doc2",
+    "name": "Dr. James Chen",
+    "specialty": "Neurology",
+    "bio": "Expert in neurodegenerative disorders and brain health. James has published several papers on cognitive enhancement.",
+    "rating": 4.8,
+    "experienceYears": 8,
+    "consultationFee": 65,
+    "photoURL": "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=400",
+    "availableSlots": [
+      "08:00",
+      "11:00",
+      "13:00",
+      "15:00"
+    ]
+  },
+  {
+    "id": "doc3",
+    "name": "Dr. Emily Brooks",
+    "specialty": "Pediatrics",
+    "bio": "Compassionate care for children and adolescents. Emily is known for her patient and friendly approach to childhood development.",
+    "rating": 5,
+    "experienceYears": 15,
+    "consultationFee": 40,
+    "photoURL": "https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=400",
+    "availableSlots": [
+      "09:30",
+      "12:00",
+      "14:30",
+      "17:00"
+    ]
+  },
+  {
+    "id": "doc4",
+    "name": "Dr. Robert Miller",
+    "specialty": "Dermatology",
+    "bio": "Specializing in skin cancer screening and cosmetic dermatology with a focus on natural-looking results.",
+    "rating": 4.7,
+    "experienceYears": 10,
+    "consultationFee": 55,
+    "photoURL": "https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=400",
+    "availableSlots": [
+      "10:00",
+      "11:30",
+      "13:30",
+      "16:00"
+    ]
+  }
+]
