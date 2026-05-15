@@ -1,20 +1,25 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { signInAnonymously } from 'firebase/auth';
+import { auth } from '../lib/firebase';
 
 interface AuthContextType {
   user: any | null;
   profile: any | null;
   loading: boolean;
   login: () => Promise<void>; // This will now be standard sign in or just removed if not needed, keeping for compat if possible
-  signUpWithEmail: (email: string, pass: string, name: string) => Promise<void>;
+  signUpWithEmail: (email: string, pass: string, name: string, role: string) => Promise<void>;
   signInWithEmail: (email: string, pass: string) => Promise<void>;
   updateProfile: (data: { 
     displayName?: string; 
     photoURL?: string; 
     subscriptionTier?: string;
+    subscriptionStatus?: string;
+    subscriptionStartDate?: string;
     emergencyContact?: string;
     bloodType?: string;
     allergies?: string;
     chronicConditions?: string;
+    role?: string;
     reminderPreferences?: {
       email: boolean;
       inApp: boolean;
@@ -32,6 +37,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Sign in anonymously to Firebase to allow Firestore access with rules
+    signInAnonymously(auth).catch(err => console.error("Firebase anonymous auth failed:", err));
+
     const checkAuth = async () => {
       try {
         const res = await fetch('/api/auth/me', { credentials: 'include' });
@@ -50,12 +58,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkAuth();
   }, []);
 
-  const signUpWithEmail = async (email: string, pass: string, name: string) => {
+  const signUpWithEmail = async (email: string, pass: string, name: string, role: string) => {
     const res = await fetch('/api/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ email, password: pass, name })
+      body: JSON.stringify({ email, password: pass, name, role })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Signup failed');
@@ -78,10 +86,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     displayName?: string; 
     photoURL?: string; 
     subscriptionTier?: string;
+    subscriptionStatus?: string;
+    subscriptionStartDate?: string;
     emergencyContact?: string;
     bloodType?: string;
     allergies?: string;
     chronicConditions?: string;
+    role?: string;
   }) => {
     const res = await fetch('/api/auth/profile', {
       method: 'PATCH',

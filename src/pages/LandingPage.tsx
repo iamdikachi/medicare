@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Shield, Clock, Heart, Users, CheckCircle, ArrowRight, Activity, Phone, Mail } from 'lucide-react';
+import { Shield, Clock, Heart, Users, CheckCircle, ArrowRight, Activity, Phone, Mail, Stethoscope } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { cn } from '../lib/utils';
 import { Link } from 'react-router-dom';
@@ -58,6 +58,12 @@ export default function LandingPage() {
                   </Link>
                   <Link to="/doctors" className="w-full sm:w-auto bg-white text-center text-gray-900 border-2 border-gray-100 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-gray-50 transition-all">
                     View Doctors
+                  </Link>
+                  <Link 
+                    to="/signup?role=doctor"
+                    className="w-full sm:w-auto bg-emerald-50 text-emerald-700 px-6 py-4 rounded-2xl font-bold text-sm hover:bg-emerald-100 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Stethoscope className="h-4 w-4" /> Are you a doctor?
                   </Link>
                 </div>
               </motion.div>
@@ -125,6 +131,58 @@ export default function LandingPage() {
                 </p>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+      
+      {/* For Practitioners Section */}
+      <section className="py-24 bg-emerald-900 overflow-hidden relative">
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="flex flex-col lg:flex-row items-center gap-16">
+            <div className="flex-1 text-white">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-800 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-wider mb-6">
+                For Medical Professionals
+              </div>
+              <h2 className="text-4xl lg:text-5xl font-sans font-bold leading-tight mb-6">
+                Expand your practice <br/>
+                <span className="text-emerald-400">digitally.</span>
+              </h2>
+              <p className="text-emerald-1/80 text-lg mb-8 leading-relaxed max-w-xl">
+                Join our network of healthcare specialists and manage your patients with ease. 
+                Our platform provides the tools you need for seamless consultations and digital records management.
+              </p>
+              <div className="space-y-4 mb-10">
+                {[
+                  'Automated scheduling & reminders',
+                  'Secure digital patient records',
+                  'High-quality video consultations',
+                  'Instant payment settlement'
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3 font-medium">
+                    <div className="bg-emerald-500 p-1 rounded-full">
+                      <CheckCircle className="h-4 w-4 text-emerald-950" />
+                    </div>
+                    {item}
+                  </div>
+                ))}
+              </div>
+              <Link 
+                to="/signup?role=doctor"
+                className="inline-flex items-center gap-2 bg-emerald-500 text-emerald-950 px-8 py-4 rounded-2xl font-black text-lg hover:bg-emerald-400 transition-all shadow-xl shadow-emerald-950/20 active:scale-95"
+              >
+                Join as Practitioner <ArrowRight className="h-5 w-5" />
+              </Link>
+            </div>
+            <div className="flex-1">
+              <div className="relative">
+                <img 
+                  src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80&w=1000"
+                  alt="Practitioner Portal"
+                  className="rounded-[3rem] shadow-2xl relative z-10"
+                />
+                <div className="absolute inset-0 bg-emerald-500/20 rounded-[3rem] blur-3xl -z-10" />
+              </div>
+            </div>
           </div>
         </div>
       </section>

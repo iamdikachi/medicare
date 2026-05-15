@@ -1,10 +1,16 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'motion/react';
-import { Mail, Lock, User, UserPlus, AlertCircle, Activity, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, UserPlus, AlertCircle, Activity, Eye, EyeOff, Stethoscope } from 'lucide-react';
+import { cn } from '../lib/utils';
 
 export default function Signup() {
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const initialRole = queryParams.get('role') === 'doctor' ? 'doctor' : 'patient';
+  
+  const [role, setRole] = useState<'patient' | 'doctor'>(initialRole);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,7 +25,7 @@ export default function Signup() {
     setError('');
     setLoading(true);
     try {
-      await signUpWithEmail(email, password, name);
+      await signUpWithEmail(email, password, name, role);
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Failed to create account');
@@ -60,6 +66,54 @@ export default function Signup() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-3 mb-8">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">I am signing up as a...</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setRole('patient')}
+                className={cn(
+                  "flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all group",
+                  role === 'patient' 
+                    ? "border-blue-600 bg-blue-50/50" 
+                    : "border-gray-100 bg-gray-50 hover:border-blue-200"
+                )}
+              >
+                <div className={cn(
+                  "p-2 rounded-xl transition-colors",
+                  role === 'patient' ? "bg-blue-600 text-white" : "bg-white text-gray-400 group-hover:text-blue-500"
+                )}>
+                  <User className="h-5 w-5" />
+                </div>
+                <span className={cn(
+                  "text-xs font-black uppercase tracking-widest",
+                  role === 'patient' ? "text-blue-900" : "text-gray-500"
+                )}>Patient</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole('doctor')}
+                className={cn(
+                  "flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all group",
+                  role === 'doctor' 
+                    ? "border-emerald-600 bg-emerald-50/50" 
+                    : "border-gray-100 bg-gray-50 hover:border-emerald-200"
+                )}
+              >
+                <div className={cn(
+                  "p-2 rounded-xl transition-colors",
+                  role === 'doctor' ? "bg-emerald-600 text-white" : "bg-white text-gray-400 group-hover:text-emerald-500"
+                )}>
+                  <Stethoscope className="h-5 w-5" />
+                </div>
+                <span className={cn(
+                  "text-xs font-black uppercase tracking-widest",
+                  role === 'doctor' ? "text-emerald-900" : "text-gray-500"
+                )}>Doctor</span>
+              </button>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <label className="text-sm font-bold text-gray-700 ml-1">Full Name</label>
             <div className="relative">
@@ -116,7 +170,12 @@ export default function Signup() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+            className={cn(
+              "w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-xl flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 text-white",
+              role === 'doctor' 
+                ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100" 
+                : "bg-blue-600 hover:bg-blue-700 shadow-blue-100"
+            )}
           >
             {loading ? "Creating account..." : <><UserPlus className="h-5 w-5" /> Create Account</>}
           </button>

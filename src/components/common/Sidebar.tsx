@@ -26,13 +26,20 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { user, profile, logout } = useAuth();
   const location = useLocation();
 
-  const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Doctors', href: '/doctors', icon: Users },
-    { name: 'Messages', href: '/messages', icon: MessageCircle },
-    { name: 'Appointments', href: '/appointments', icon: Calendar },
-    { name: 'Health Records', href: '/records', icon: Clipboard },
-  ];
+  const navigation = profile?.role === 'doctor' 
+    ? [
+        { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+        { name: 'My Schedule', href: '/appointments', icon: Calendar },
+        { name: 'Patient Records', href: '/records', icon: Clipboard },
+        { name: 'Messages', href: '/messages', icon: MessageCircle },
+      ]
+    : [
+        { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+        { name: 'Find Doctors', href: '/doctors', icon: Users },
+        { name: 'My Appointments', href: '/appointments', icon: Calendar },
+        { name: 'Messages', href: '/messages', icon: MessageCircle },
+        { name: 'Health Records', href: '/records', icon: Clipboard },
+      ];
 
   const secondaryNav = [
     { name: 'Profile', href: '/profile', icon: UserIcon },

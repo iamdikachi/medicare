@@ -40,6 +40,7 @@ export default function DoctorProfile() {
   const [isBooking, setIsBooking] = useState(false);
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [selectedTime, setSelectedTime] = useState('');
+  const [notes, setNotes] = useState('');
 
   // Simulation: Filter available slots based on the selected date (e.g. fewer slots on weekends)
   const getDynamicSlots = (dateString: string) => {
@@ -297,6 +298,22 @@ export default function DoctorProfile() {
                         <span className="text-sm font-black uppercase tracking-widest">{selectedTime}</span>
                      </div>
                    )}
+                   {canBook && (
+                     <motion.div 
+                       initial={{ opacity: 0, height: 0 }}
+                       animate={{ opacity: 1, height: 'auto' }}
+                       className="space-y-3 pt-6 border-t border-white/10"
+                     >
+                        <label className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2">Detailed Symptoms</label>
+                        <textarea
+                          value={notes}
+                          onChange={(e) => setNotes(e.target.value)}
+                          placeholder="Please describe why you're seeking a consultation..."
+                          rows={3}
+                          className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl focus:bg-white/10 focus:ring-1 focus:ring-blue-500 transition-all font-medium text-sm text-white resize-none"
+                        />
+                     </motion.div>
+                   )}
                    {!selectedTime && (
                       <div className="bg-white/5 p-4 rounded-2xl flex items-center gap-3">
                          <Info className="h-5 w-5 text-blue-400" />
@@ -340,6 +357,7 @@ export default function DoctorProfile() {
           onClose={() => setIsBooking(false)}
           initialDate={selectedDate}
           initialTime={selectedTime}
+          initialNotes={notes}
         />
       )}
     </div>

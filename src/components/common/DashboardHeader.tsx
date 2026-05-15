@@ -47,7 +47,7 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
 
   useEffect(() => {
     if (!user) return;
-    const unsubscribe = getNotifications(user.uid, setNotifications);
+    const unsubscribe = getNotifications(setNotifications);
     return () => unsubscribe();
   }, [user]);
 
