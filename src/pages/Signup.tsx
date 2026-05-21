@@ -26,7 +26,12 @@ export default function Signup() {
     setLoading(true);
     try {
       await signUpWithEmail(email, password, name, role);
-      navigate('/dashboard');
+      const plan = queryParams.get('plan');
+      if (plan === 'standard' || plan === 'premium') {
+        navigate('/subscription');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to create account');
     } finally {
@@ -37,7 +42,12 @@ export default function Signup() {
   const handleGoogleLogin = async () => {
     try {
       await login();
-      navigate('/dashboard');
+      const plan = queryParams.get('plan');
+      if (plan === 'standard' || plan === 'premium') {
+        navigate('/subscription');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       setError(err.message || 'Google login failed');
     }
@@ -198,7 +208,7 @@ export default function Signup() {
 
         <p className="mt-8 text-center text-sm font-medium text-gray-500">
           Already have an account?{' '}
-          <Link to="/login" className="text-blue-600 font-bold hover:underline">Log in here</Link>
+          <Link to={`/login${location.search}`} className="text-blue-600 font-bold hover:underline">Log in here</Link>
         </p>
       </motion.div>
     </div>

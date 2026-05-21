@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'motion/react';
 import { Mail, Lock, LogIn, AlertCircle, Activity, Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -19,7 +21,12 @@ export default function Login() {
     setLoading(true);
     try {
       await signInWithEmail(email, password);
-      navigate('/dashboard');
+      const plan = queryParams.get('plan');
+      if (plan === 'standard' || plan === 'premium') {
+        navigate('/subscription');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to login');
     } finally {
@@ -30,7 +37,12 @@ export default function Login() {
   const handleGoogleLogin = async () => {
     try {
       await login();
-      navigate('/dashboard');
+      const plan = queryParams.get('plan');
+      if (plan === 'standard' || plan === 'premium') {
+        navigate('/subscription');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       setError(err.message || 'Google login failed');
     }
@@ -126,7 +138,7 @@ export default function Login() {
 
         <p className="mt-8 text-center text-sm font-medium text-gray-500">
           Don't have an account?{' '}
-          <Link to="/signup" className="text-blue-600 font-bold hover:underline">Sign up for free</Link>
+          <Link to={`/signup${location.search}`} className="text-blue-600 font-bold hover:underline">Sign up for free</Link>
         </p>
       </motion.div>
     </div>

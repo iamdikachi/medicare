@@ -46,6 +46,9 @@ interface Appointment {
   specialty?: string;
   dateTime: string;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  paymentStatus?: 'paid' | 'pending';
+  transactionId?: string;
+  amountPaid?: number;
   notes?: string;
 }
 
@@ -300,7 +303,12 @@ export default function Appointments() {
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-6 flex-wrap justify-end">
+                          {app.paymentStatus === 'paid' && (
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border bg-emerald-50 text-emerald-600 border-emerald-100">
+                              PAID ${app.amountPaid}
+                            </div>
+                          )}
                           <StatusBadge status={app.status} />
                           <div className="flex items-center gap-2">
                             <button 
@@ -362,8 +370,13 @@ export default function Appointments() {
                                 <div className="text-sm font-bold text-gray-700">{format(parseISO(app.dateTime), 'MMM d, yyyy')}</div>
                                 <div className="text-xs text-gray-400 font-medium">{format(parseISO(app.dateTime), 'h:mm a')}</div>
                               </td>
-                              <td className="px-8 py-6">
+                              <td className="px-8 py-6 flex flex-col gap-2 items-start">
                                 <StatusBadge status={app.status} />
+                                {app.paymentStatus === 'paid' && (
+                                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border bg-emerald-50 text-emerald-600 border-emerald-100">
+                                    PAID ${app.amountPaid}
+                                  </div>
+                                )}
                               </td>
                               <td className="px-8 py-6 text-right">
                                  <button className="text-blue-600 font-bold text-xs uppercase tracking-widest hover:underline">View Notes</button>

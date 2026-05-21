@@ -24,9 +24,41 @@
     "email": "doneonyi920@gmail.com",
     "password": "$2b$10$yt/5evlDQUJPwTDkLqWVregsxIY2F/eY6bBFgX5lPr/Qof.IkMgeq",
     "displayName": "Emmanuel Nnadi",
-    "photoURL": "https://api.dicebear.com/7.x/avataaars/svg?seed=doneonyi920@gmail.com",
+    "photoURL": "/uploads/document-1779360356763-406826734.jpg",
     "role": "patient",
+    "subscriptionTier": "basic",
+    "createdAt": "2026-05-11T15:58:28.456Z",
+    "subscriptionStatus": "active",
+    "subscriptionStartDate": "2026-05-15T15:10:45.068Z",
+    "emergencyContact": "",
+    "bloodType": "",
+    "allergies": "",
+    "chronicConditions": "",
+    "reminderPreferences": {
+      "email": true,
+      "inApp": true,
+      "remind24h": true,
+      "remind1h": true
+    }
+  },
+  {
+    "uid": "jmqub",
+    "email": "testAccount@gmail.com",
+    "password": "$2b$10$v7GIkPHqZZn6GS1gd3Mkg.OsevDpvfGb2dqJQeoPR7CqFDkAbFDte",
+    "displayName": "John Doe",
+    "photoURL": "/uploads/document-1779360314529-40517979.jpeg",
+    "role": "doctor",
     "subscriptionTier": "free",
-    "createdAt": "2026-05-11T15:58:28.456Z"
+    "createdAt": "2026-05-21T10:41:04.183Z",
+    "emergencyContact": "",
+    "bloodType": "",
+    "allergies": "",
+    "chronicConditions": "",
+    "reminderPreferences": {
+      "email": true,
+      "inApp": true,
+      "remind24h": true,
+      "remind1h": true
+    }
   }
 ]

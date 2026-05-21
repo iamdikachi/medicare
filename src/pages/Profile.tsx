@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'motion/react';
-import { User, Mail, Camera, CreditCard, Save, AlertCircle, CheckCircle2, ChevronRight, Shield, Phone, Droplet, Thermometer, Activity, Bell, ExternalLink } from 'lucide-react';
+import { User, Mail, Camera, CreditCard, Save, AlertCircle, CheckCircle2, ChevronRight, Shield, Phone, Droplet, Thermometer, Activity, Bell, ExternalLink, Stethoscope } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { Link } from 'react-router-dom';
 
@@ -22,9 +22,49 @@ export default function Profile() {
   const [chronicConditions, setChronicConditions] = useState(user?.chronicConditions || '');
   const [role, setRole] = useState(user?.role || 'patient');
   
+  // Doctor/Practitioner fields
+  const [specialty, setSpecialty] = useState(user?.specialty || '');
+  const [bio, setBio] = useState(user?.bio || '');
+  const [experienceYears, setExperienceYears] = useState(user?.experienceYears || '');
+  const [consultationFee, setConsultationFee] = useState(user?.consultationFee || '');
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('document', file);
+
+    setUploadingPhoto(true);
+    setError('');
+    setSuccess('');
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPhotoURL(data.url);
+        setSuccess('Profile picture uploaded! Click Save Changes to store permanently.');
+        setTimeout(() => setSuccess(''), 4000);
+      } else {
+        setError('Failed to upload profile picture');
+      }
+    } catch (err: any) {
+      console.error('Photo upload error:', err);
+      setError('Error uploading profile picture');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
   const handlePreferenceToggle = async (key: keyof typeof reminderPreferences) => {
     const updatedPrefs = {
@@ -54,7 +94,10 @@ export default function Profile() {
       await updateProfile({ 
         displayName, photoURL, subscriptionTier, role,
         emergencyContact, bloodType, allergies, chronicConditions,
-        reminderPreferences
+        reminderPreferences,
+        specialty, bio, 
+        experienceYears: experienceYears !== '' ? Number(experienceYears) : undefined,
+        consultationFee: consultationFee !== '' ? Number(consultationFee) : undefined
       });
       setSuccess('Profile updated successfully!');
       setTimeout(() => setSuccess(''), 3000);
@@ -83,12 +126,33 @@ export default function Profile() {
           <div className="bg-gray-900 p-12 text-white relative">
              <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
                 <div className="relative group">
-                  <div className="w-32 h-32 rounded-[2.5rem] overflow-hidden ring-4 ring-white/10 group-hover:ring-white/30 transition-all">
-                    <img src={user?.photoURL} alt="Avatar" className="w-full h-full object-cover" />
+                  <div className="w-32 h-32 rounded-[2.5rem] overflow-hidden ring-4 ring-white/10 group-hover:ring-white/30 transition-all relative flex items-center justify-center bg-gray-800">
+                    {uploadingPhoto ? (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
+                        <div className="animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent"></div>
+                      </div>
+                    ) : null}
+                    <img 
+                      src={photoURL || user?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}`} 
+                      alt="Avatar" 
+                      className="w-full h-full object-cover" 
+                    />
                   </div>
-                  <button className="absolute -bottom-2 -right-2 bg-blue-600 p-2.5 rounded-2xl shadow-xl hover:bg-blue-700 transition-all group-hover:scale-110">
+                  <button 
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingPhoto}
+                    className="absolute -bottom-2 -right-2 bg-blue-600 p-2.5 rounded-2xl shadow-xl hover:bg-blue-700 transition-all group-hover:scale-110 disabled:opacity-50"
+                  >
                     <Camera className="h-5 w-5" />
                   </button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handlePhotoUpload}
+                    accept="image/*"
+                    className="hidden"
+                  />
                 </div>
                 <div className="text-center md:text-left">
                   <h1 className="text-4xl font-bold mb-2 tracking-tight">{user?.displayName}</h1>
@@ -257,6 +321,60 @@ export default function Profile() {
                     </div>
                   </section>
                 </>
+              )}
+
+              {role === 'doctor' && (
+                <section>
+                  <div className="flex items-center gap-3 mb-8">
+                    <div className="bg-emerald-50 p-2 rounded-xl">
+                      <Stethoscope className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-900 uppercase tracking-tight">Professional Practitioner Details</h2>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-8">
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-gray-700 ml-1">Medical Specialty</label>
+                      <input
+                        type="text"
+                        value={specialty}
+                        onChange={(e) => setSpecialty(e.target.value)}
+                        className="w-full px-5 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900"
+                        placeholder="e.g. Cardiology, Pediatrics, General Medicine"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-gray-700 ml-1">Experience (Years)</label>
+                      <input
+                        type="number"
+                        value={experienceYears}
+                        onChange={(e) => setExperienceYears(e.target.value)}
+                        className="w-full px-5 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900"
+                        placeholder="e.g. 10"
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-sm font-bold text-gray-700 ml-1">Consultation Fee ($ per Session)</label>
+                      <input
+                        type="number"
+                        value={consultationFee}
+                        onChange={(e) => setConsultationFee(e.target.value)}
+                        className="w-full px-5 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900"
+                        placeholder="e.g. 75"
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-sm font-bold text-gray-700 ml-1">Professional Bio</label>
+                      <textarea
+                        rows={4}
+                        value={bio}
+                        onChange={(e) => setBio(e.target.value)}
+                        className="w-full p-5 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium text-gray-900 resize-none"
+                        placeholder="Describe your credentials, medical background, areas of focus, etc..."
+                      />
+                    </div>
+                  </div>
+                </section>
               )}
 
               <section>

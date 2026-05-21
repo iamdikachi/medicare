@@ -5,9 +5,24 @@
     "dateTime": "2026-05-18T10:30:00.000Z",
     "docName": "Dr. Robert Miller",
     "specialty": "Dermatology",
-    "status": "pending",
+    "status": "cancelled",
     "notes": "",
     "patientId": "8mn4e",
     "createdAt": "2026-05-11T15:59:42.474Z"
+  },
+  {
+    "id": "wssxcd",
+    "doctorId": "doc4",
+    "dateTime": "2026-05-19T10:30:00.000Z",
+    "docName": "Dr. Robert Miller",
+    "patientName": "Emmanuel Nnadi",
+    "specialty": "Dermatology",
+    "status": "confirmed",
+    "paymentStatus": "paid",
+    "transactionId": "tx_7ukr61km7m7",
+    "amountPaid": 55,
+    "notes": "",
+    "patientId": "8mn4e",
+    "createdAt": "2026-05-15T16:55:42.058Z"
   }
 ]

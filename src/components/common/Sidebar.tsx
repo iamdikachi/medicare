@@ -44,7 +44,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const secondaryNav = [
     { name: 'Profile', href: '/profile', icon: UserIcon },
     { name: 'Support', href: '/support', icon: HelpCircle },
-    { name: 'Settings', href: '#', icon: Settings },
+    { name: 'Settings', href: '/settings', icon: Settings },
   ];
 
   if (!user) return null;

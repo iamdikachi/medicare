@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import Header from './components/common/Header';
 import DashboardHeader from './components/common/DashboardHeader';
 import Sidebar from './components/common/Sidebar';
@@ -18,6 +19,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Subscription from './pages/Subscription';
 import Support from './pages/Support';
+import Settings from './pages/Settings';
 import { useLocation } from 'react-router-dom';
 import { cn } from './lib/utils';
 import NotificationManager from './components/NotificationManager';
@@ -40,7 +42,7 @@ function AppRoutes() {
   const showDashboardLayout = user && !isPublicPage;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-white">
+    <div className="flex h-screen overflow-hidden bg-white dark:bg-gray-950 transition-colors">
       {user && <NotificationManager />}
       {showDashboardLayout && (
         <Sidebar 
@@ -58,8 +60,8 @@ function AppRoutes() {
           />
         )}
         <main className={cn(
-          "flex-1 overflow-auto",
-          showDashboardLayout ? "bg-gray-50/10" : "bg-white"
+          "flex-1 overflow-auto transition-colors",
+          showDashboardLayout ? "bg-gray-50/10 dark:bg-gray-900" : "bg-white dark:bg-gray-950"
         )}>
           <Routes>
             <Route path="/" element={!user ? <LandingPage /> : <Navigate to="/dashboard" />} />
@@ -76,6 +78,7 @@ function AppRoutes() {
             <Route path="/records" element={user ? <HealthRecords /> : <Navigate to="/login" />} />
             <Route path="/subscription" element={user ? <Subscription /> : <Navigate to="/login" />} />
             <Route path="/support" element={user ? <Support /> : <Navigate to="/login" />} />
+            <Route path="/settings" element={user ? <Settings /> : <Navigate to="/login" />} />
           </Routes>
         </main>
       </div>
@@ -86,11 +89,13 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <AppRoutes />
-      </Router>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <AppRoutes />
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

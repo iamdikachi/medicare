@@ -243,12 +243,14 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
                     <Activity className="h-4 w-4" />
                     Dashboard
                   </Link>
-                  <button 
+                  <Link 
+                    to="/settings"
+                    onClick={() => setIsDropdownOpen(false)}
                     className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-600 hover:text-blue-600 hover:bg-blue-50/50 rounded-2xl transition-all"
                   >
                     <Settings className="h-4 w-4" />
                     Settings
-                  </button>
+                  </Link>
                 </div>
                 
                 <div className="mt-3 pt-3 border-t border-gray-50 px-2">

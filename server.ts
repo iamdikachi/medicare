@@ -189,7 +189,8 @@ async function startServer() {
       displayName, photoURL, subscriptionTier, 
       subscriptionStatus, subscriptionStartDate,
       emergencyContact, bloodType, allergies, chronicConditions,
-      reminderPreferences, role
+      reminderPreferences, role,
+      specialty, bio, experienceYears, consultationFee
     } = req.body;
     let users = getData(USERS_FILE);
     const userIndex = users.findIndex((u: any) => u.uid === req.userUid);
@@ -208,8 +209,42 @@ async function startServer() {
     if (chronicConditions !== undefined) users[userIndex].chronicConditions = chronicConditions;
     if (reminderPreferences !== undefined) users[userIndex].reminderPreferences = reminderPreferences;
     if (role !== undefined) users[userIndex].role = role;
+    if (specialty !== undefined) users[userIndex].specialty = specialty;
+    if (bio !== undefined) users[userIndex].bio = bio;
+    if (experienceYears !== undefined) users[userIndex].experienceYears = experienceYears;
+    if (consultationFee !== undefined) users[userIndex].consultationFee = consultationFee;
 
     saveData(USERS_FILE, users);
+
+    // Sync with doctors.json if role is doctor
+    if (users[userIndex].role === 'doctor') {
+      let doctors = getData(DOCTORS_FILE);
+      let docIndex = doctors.findIndex((d: any) => d.uid === req.userUid || d.id === req.userUid || d.id === `doc_${req.userUid}`);
+      
+      if (docIndex === -1) {
+        docIndex = doctors.findIndex((d: any) => d.name === users[userIndex].displayName);
+      }
+      
+      const doctorData = {
+        id: docIndex !== -1 ? doctors[docIndex].id : `doc_${req.userUid}`,
+        uid: req.userUid,
+        name: users[userIndex].displayName,
+        specialty: users[userIndex].specialty || 'General Practitioner',
+        bio: users[userIndex].bio || 'Licensed medical professional dedicated to providing excellent healthcare.',
+        rating: docIndex !== -1 ? doctors[docIndex].rating : 5.0,
+        experienceYears: users[userIndex].experienceYears !== undefined ? Number(users[userIndex].experienceYears) : (docIndex !== -1 ? doctors[docIndex].experienceYears : 5),
+        consultationFee: users[userIndex].consultationFee !== undefined ? Number(users[userIndex].consultationFee) : (docIndex !== -1 ? doctors[docIndex].consultationFee : 45),
+        photoURL: users[userIndex].photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${users[userIndex].email}`,
+        availableSlots: docIndex !== -1 ? (doctors[docIndex].availableSlots || ['09:00', '10:30', '14:00', '16:30']) : ['09:00', '10:30', '14:00', '16:30']
+      };
+
+      if (docIndex !== -1) {
+        doctors[docIndex] = doctorData;
+      } else {
+        doctors.push(doctorData);
+      }
+      saveData(DOCTORS_FILE, doctors);
+    }
 
     const { password: _, ...cleanUser } = users[userIndex];
     res.json(cleanUser);

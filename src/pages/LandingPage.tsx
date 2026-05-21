@@ -247,12 +247,15 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
-                <button className={cn(
-                  "w-full py-4 rounded-2xl font-bold transition-all active:scale-95",
-                  plan.popular ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-gray-50 text-gray-900 border border-gray-100 hover:bg-gray-100"
-                )}>
+                <Link
+                  to={`/signup?plan=${plan.name.toLowerCase()}`}
+                  className={cn(
+                    "block w-full text-center py-4 rounded-2xl font-bold transition-all active:scale-95",
+                    plan.popular ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-gray-50 text-gray-900 border border-gray-100 hover:bg-gray-100"
+                  )}
+                >
                   Get Started
-                </button>
+                </Link>
               </div>
             ))}
           </div>
